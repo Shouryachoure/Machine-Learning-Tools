@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Assignment 3 – MobileNet vs Dense Model</title>
+
+<!-- TensorFlow.js -->
+<script src="https://unpkg.com/@tensorflow/tfjs@3.21.0/dist/tf.min.js"></script>
+
+<!-- MobileNet -->
+<script src="https://unpkg.com/@tensorflow-models/mobilenet@2.1.0/dist/mobilenet.min.js"></script>
+
+<style>
+body { 
+    text-align:center; 
+    font-family:Arial; 
+    padding:20px; 
+}
+img { 
+    width:300px; 
+    margin-top:20px; 
+    border-radius:10px; 
+    border:2px solid #ccc;
+}
+button {
+    padding:10px 20px;
+    margin:10px;
+    background:#8e44ad;
+    color:white;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+}
+button:hover {
+    background:#732d91;
+}
+</style>
+
+</head>
+
+<body>
+
+<h2>Assignment 3 – MobileNet vs Dense Network</h2>
+
+<img id="img" src="img1.jpg">
+
+<br>
+<button onclick="prev()">Previous</button>
+<button onclick="next()">Next</button>
+<button onclick="compare()">Compare Models</button>
+
+<p id="result" style="font-size:18px;"></p>
+
+<script src="script.js"></script>
+
+</body>
+</html>
