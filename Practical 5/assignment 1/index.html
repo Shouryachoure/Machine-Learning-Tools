@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Assignment 1 - Webcam Classification</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.21.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+
+    <style>
+        body { text-align:center; font-family:Arial; }
+        video { border:2px solid #333; border-radius:10px; margin-top:10px; }
+        #label { font-size:22px; margin-top:12px; font-weight:bold; }
+    </style>
+</head>
+
+<body>
+    <h2>Assignment 1: Webcam + MobileNet Classification</h2>
+    <h3 id="status">Loading Model...</h3>
+
+    <video id="cam" autoplay playsinline width="350"></video>
+    <p id="label">Waiting...</p>
+
+    <script src="script.js"></script>
+</body>
+</html>
