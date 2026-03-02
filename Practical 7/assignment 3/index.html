@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PoseNet Single vs Multi Pose</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.21.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@2.2.1"></script>
+
+<style>
+body {
+  background: linear-gradient(135deg,#0d1b3d,#000814);
+  color: white;
+  font-family: Poppins, sans-serif;
+  text-align: center;
+  padding-top: 40px;
+}
+video, canvas {
+  border-radius: 15px;
+  margin-top: 15px;
+}
+</style>
+</head>
+
+<body>
+<h1>PoseNet Comparison</h1>
+<p id="status">Loading models…</p>
+
+<video id="webcam" width="500" autoplay playsinline></video>
+<canvas id="canvas" width="500" height="400"></canvas>
+
+<br><br>
+
+<button onclick="mode='single'">Single Pose</button>
+<button onclick="mode='multi'">Multi Pose</button>
+
+<p>Mode: <b id="modeText">Single Pose</b></p>
+
+<script src="script.js"></script>
+</body>
+</html>
