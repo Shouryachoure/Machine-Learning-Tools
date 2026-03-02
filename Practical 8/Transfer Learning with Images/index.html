@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Transfer Learning (MobileNet)</title>
+
+    <!-- TensorFlow.js -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.21.0"></script>
+
+    <!-- MobileNet V2 (Correct 1024-D version) -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.0"></script>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: "Poppins", sans-serif;
+            background: linear-gradient(135deg, #001c4e, #09255f, #003d80);
+            height: 100vh;
+            color: white;
+        }
+
+        .card {
+            width: 700px;
+            margin: 40px auto;
+            background: rgba(255, 255, 255, 0.12);
+            padding: 30px;
+            border-radius: 18px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 0 25px rgba(0,0,0,0.4);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #log {
+            width: 95%;
+            height: 160px;
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            margin-top: 20px;
+            border-radius: 12px;
+            font-size: 13px;
+            overflow-y: scroll;
+        }
+
+        #preview img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin: 8px;
+        }
+
+        button {
+            padding: 8px 20px;
+            font-size: 14px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-right: 10px;
+            background: #4aa3ff;
+            color: white;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #1b8bff;
+            transform: scale(1.05);
+        }
+
+        input[type=file] {
+            margin: 10px 0;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div class="card">
+        <h1>Transfer Learning (MobileNet)</h1>
+
+        <h3>Upload Training Images (3 Categories)</h3>
+        <p><b>Folders must be categories like:</b> apple, banana, orange</p>
+
+        <input type="file" id="files" webkitdirectory multiple />
+
+        <br><br>
+        <button onclick="trainModel()">Train Model</button>
+        <button onclick="testRandom()">Test Random Image</button>
+
+        <div id="log">Logs:<br></div>
+
+        <div id="preview"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

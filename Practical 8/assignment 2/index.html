@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Assignment 2 – Transfer Learning Accuracy & Confusion Matrix</title>
+
+<!-- TensorFlow.js -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.21.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.0"></script>
+
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+    body {
+        margin: 0;
+        background: #0e0f1a;
+        font-family: "Poppins", sans-serif;
+        color: white;
+    }
+
+    /* Header */
+    .header {
+        width: 100%;
+        padding: 22px;
+        font-size: 26px;
+        font-weight: 600;
+        background: rgba(255,255,255,0.04);
+        backdrop-filter: blur(16px);
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        text-align: center;
+    }
+
+    /* Card */
+    .card {
+        width: 950px;
+        margin: 40px auto;
+        background: rgba(255,255,255,0.08);
+        backdrop-filter: blur(18px);
+        padding: 35px;
+        border-radius: 18px;
+        border: 1px solid rgba(255,255,255,0.12);
+        box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    }
+
+    button {
+        padding: 10px 25px;
+        font-size: 16px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        font-weight: 500;
+        margin: 12px 10px 20px 0;
+        background: linear-gradient(135deg,#4a7bff,#78b4ff);
+        color: white;
+        transition: 0.3s;
+    }
+
+    button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 18px rgba(80,120,255,0.4);
+    }
+
+    #log {
+        height: 220px;
+        background: rgba(0,0,0,0.35);
+        border-radius: 10px;
+        padding: 12px;
+        font-size: 14px;
+        overflow-y: auto;
+        border: 1px solid rgba(255,255,255,0.12);
+        margin-top: 20px;
+    }
+
+    #preview img {
+        width: 95px;
+        height: 95px;
+        border-radius: 12px;
+        margin: 6px;
+        object-fit: cover;
+        border: 1px solid rgba(255,255,255,0.18);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+
+    /* Confusion Matrix Table */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    th, td {
+        padding: 12px;
+        border: 1px solid rgba(255,255,255,0.18);
+        text-align: center;
+        border-radius: 6px;
+    }
+    th {
+        background: rgba(255,255,255,0.12);
+    }
+    .cmCell {
+        background: rgba(255,255,255,0.08);
+    }
+</style>
+</head>
+
+<body>
+
+<div class="header">Assignment 2 – MobileNet Transfer Learning</div>
+
+<div class="card">
+
+    <h2>Upload Dataset (Manual Upload)</h2>
+    <input type="file" id="fileInput" multiple accept="image/*">
+
+    <button onclick="trainAndValidate()">Train & Validate</button>
+
+    <h3>Logs</h3>
+    <div id="log"></div>
+
+    <h3>Uploaded Images</h3>
+    <div id="preview"></div>
+
+    <h3>Confusion Matrix</h3>
+    <div id="cm"></div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
