@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Transfer Learning – Assignment 1</title>
+
+<!-- TensorFlow.js -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+    body {
+        margin: 0;
+        background: #0f0f17;
+        font-family: "Poppins", sans-serif;
+        color: white;
+    }
+
+    /* Top Header */
+    .header {
+        width: 100%;
+        padding: 22px 40px;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(18px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        font-size: 24px;
+        font-weight: 600;
+        letter-spacing: 1px;
+    }
+
+    /* Main card */
+    .card {
+        width: 900px;
+        margin: 40px auto;
+        padding: 35px;
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(20px);
+        border-radius: 18px;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    h2 {
+        margin-top: 0;
+        font-weight: 600;
+        font-size: 26px;
+        color: #a3c9ff;
+    }
+
+    /* Buttons */
+    button {
+        padding: 10px 25px;
+        font-size: 16px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        margin: 10px 10px 20px 0;
+        background: linear-gradient(135deg, #517bff, #6eaaff);
+        color: white;
+        font-weight: 500;
+        transition: 0.3s;
+    }
+
+    button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 20px rgba(90, 150, 255, 0.4);
+    }
+
+    /* Log panel */
+    #log {
+        background: rgba(0, 0, 0, 0.35);
+        border: 1px solid rgba(255,255,255,0.15);
+        padding: 12px;
+        height: 180px;
+        overflow-y: auto;
+        border-radius: 10px;
+        margin-top: 20px;
+        font-size: 14px;
+    }
+
+    /* Image preview */
+    #preview img {
+        width: 90px;
+        height: 90px;
+        object-fit: cover;
+        border-radius: 12px;
+        margin: 8px;
+        border: 1px solid rgba(255,255,255,0.2);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+    }
+</style>
+</head>
+
+<body>
+
+<div class="header">
+    Transfer Learning – Assignment 1 (MobileNet)
+</div>
+
+<div class="card">
+    <h2>Upload Training Images (Manual Upload)</h2>
+
+    <p><strong>Categories:</strong> Shinchan, Harry, Mitsy</p>
+
+    <!-- Manual file upload -->
+    <input type="file" id="fileInput" multiple accept="image/*"><br><br>
+
+    <button onclick="trainModel()">Train Model</button>
+    <button onclick="testRandom()">Test Random</button>
+
+    <h3>Logs:</h3>
+    <div id="log"></div>
+
+    <h3>Preview:</h3>
+    <div id="preview"></div>
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>

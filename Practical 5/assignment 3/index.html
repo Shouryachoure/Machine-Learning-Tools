@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Assignment 3 – FPS & Performance</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <header>
+    <a href="../../index.html" class="back">← Practical 5</a>
+    <div class="tag">Assignment 03</div>
+    <h1>FPS & Performance Analysis</h1>
+    <p>Measure FPS and analyze the performance impact of real-time inference · CO3 – Apply</p>
+  </header>
+
+  <!-- Top Row: Webcam + Stats -->
+  <div class="top-row">
+
+    <!-- Webcam -->
+    <div class="card cam-card">
+      <div class="win-bar">
+        <span class="dot r"></span>
+        <span class="dot y"></span>
+        <span class="dot g"></span>
+        <span>perf_monitor.js</span>
+        <span id="liveIndicator" class="live-tag">● IDLE</span>
+      </div>
+      <div class="feed-wrap">
+        <video id="video" autoplay playsinline muted></video>
+        <canvas id="canvas"></canvas>
+      </div>
+      <div class="ctrl-row">
+        <button class="btn start" onclick="startSession()">▶ Start</button>
+        <button class="btn stop"  onclick="stopSession()" id="stopBtn" disabled>■ Stop</button>
+        <button class="btn reset" onclick="resetData()">↺ Reset</button>
+      </div>
+    </div>
+
+    <!-- Live Stats -->
+    <div class="card stats-card">
+      <h2>Live Metrics</h2>
+      <div class="metric-grid">
+        <div class="metric"><div id="m_fps"   class="m-val green">--</div><div class="m-key">Current FPS</div></div>
+        <div class="metric"><div id="m_avg"   class="m-val blue">--</div><div class="m-key">Avg FPS</div></div>
+        <div class="metric"><div id="m_inf"   class="m-val yellow">--</div><div class="m-key">Inference ms</div></div>
+        <div class="metric"><div id="m_minf"  class="m-val orange">--</div><div class="m-key">Avg Inference</div></div>
+        <div class="metric"><div id="m_min"   class="m-val red">--</div><div class="m-key">Min FPS</div></div>
+        <div class="metric"><div id="m_max"   class="m-val green">--</div><div class="m-key">Max FPS</div></div>
+        <div class="metric"><div id="m_drop"  class="m-val red">--</div><div class="m-key">Frame Drops</div></div>
+        <div class="metric"><div id="m_total" class="m-val blue">0</div><div class="m-key">Total Frames</div></div>
+      </div>
+
+      <div class="top-pred-box">
+        <div class="tp-label">CURRENT DETECTION</div>
+        <div id="topPred" class="tp-val">--</div>
+        <div id="topConf" class="tp-conf">--</div>
+      </div>
+
+      <div class="log-box" id="log">
+        <div class="log-line">Ready to start session.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Charts Row -->
+  <div class="charts-row">
+    <div class="card chart-card">
+      <h3>FPS Over Time</h3>
+      <canvas id="fpsChart"></canvas>
+    </div>
+    <div class="card chart-card">
+      <h3>Inference Time (ms) Over Time</h3>
+      <canvas id="infChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Performance Report -->
+  <div class="card report-card" id="reportCard">
+    <h2>Performance Report</h2>
+    <div id="reportContent" class="report-content">
+      <p class="hint">Run a session to generate a performance report.</p>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Assignment 2 – Overlay Labels</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <header>
+    <a href="../../index.html" class="back">← Practical 5</a>
+    <div class="tag">Assignment 02</div>
+    <h1>Overlay Labels on Video Feed</h1>
+    <p>Real-time label rendering directly on the live webcam stream · CO3 – Apply</p>
+  </header>
+
+  <div class="layout">
+
+    <!-- Feed Panel -->
+    <div class="feed-card">
+      <div class="win-bar">
+        <span class="dot r"></span>
+        <span class="dot y"></span>
+        <span class="dot g"></span>
+        <span>overlay_renderer.js</span>
+        <span id="statusDot" class="status-dot off"></span>
+      </div>
+      <div class="feed-wrap">
+        <video id="video" autoplay playsinline muted></video>
+        <canvas id="canvas"></canvas>
+      </div>
+      <div class="ctrl-row">
+        <button class="btn" id="startBtn" onclick="start()">▶ Start</button>
+        <button class="btn danger" id="stopBtn" onclick="stop()" disabled>■ Stop</button>
+        <label class="toggle-label">
+          <input type="checkbox" id="showAll" checked> Show All 3
+        </label>
+        <label class="toggle-label">
+          <input type="checkbox" id="showBox" checked> Bounding Box
+        </label>
+      </div>
+    </div>
+
+    <!-- Side Panel -->
+    <div class="side-card">
+      <h2>Live Predictions</h2>
+      <div id="liveList" class="live-list">
+        <div class="live-item empty">Not running</div>
+      </div>
+
+      <h2 style="margin-top:20px">Overlay Settings</h2>
+      <div class="settings">
+        <label>Label Font Size
+          <input type="range" id="fontSize" min="12" max="36" value="18">
+          <span id="fontSizeVal">18px</span>
+        </label>
+        <label>Label Color
+          <input type="color" id="labelColor" value="#ff2d2d">
+        </label>
+        <label>Box Color
+          <input type="color" id="boxColor" value="#ff2d2d">
+        </label>
+        <label>Box Opacity
+          <input type="range" id="boxOpacity" min="0" max="100" value="20">
+          <span id="boxOpacityVal">20%</span>
+        </label>
+      </div>
+
+      <div class="log-box" id="log">
+        <div class="log-line">Ready.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

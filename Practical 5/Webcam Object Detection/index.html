@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Practical 5 – Webcam Object Detection</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+</head>
+<body>
+
+  <div class="hero">
+    <div class="badge">CO3 – Apply</div>
+    <h1>Webcam-based<br/><span>Object Detection</span></h1>
+    <p class="subtitle">Real-time classification using MobileNet · TensorFlow.js</p>
+  </div>
+
+  <div class="main-container">
+
+    <!-- Camera Section -->
+    <div class="camera-card">
+      <div class="camera-header">
+        <span class="dot red"></span>
+        <span class="dot yellow"></span>
+        <span class="dot green"></span>
+        <span class="cam-title">Live Feed</span>
+      </div>
+      <div class="video-wrapper">
+        <video id="webcam" autoplay playsinline muted></video>
+        <canvas id="overlay"></canvas>
+        <div class="scan-line"></div>
+        <div id="fps-badge" class="fps-badge">FPS: --</div>
+      </div>
+      <div class="controls">
+        <button id="startBtn" class="btn primary" onclick="startDetection()">
+          ▶ Start Detection
+        </button>
+        <button id="stopBtn" class="btn danger" onclick="stopDetection()" disabled>
+          ■ Stop
+        </button>
+      </div>
+    </div>
+
+    <!-- Results Section -->
+    <div class="results-card">
+      <h2 class="results-title">Detection Results</h2>
+
+      <div class="result-block">
+        <div class="result-label">Top Prediction</div>
+        <div id="topLabel" class="top-label">Waiting...</div>
+        <div id="topConf" class="top-conf">--</div>
+      </div>
+
+      <div class="result-block">
+        <div class="result-label">All Predictions</div>
+        <div id="predictionList" class="prediction-list">
+          <div class="pred-item empty">Model not loaded</div>
+        </div>
+      </div>
+
+      <div class="result-block">
+        <div class="result-label">Performance</div>
+        <div class="perf-grid">
+          <div class="perf-box">
+            <div id="fpsVal" class="perf-num">--</div>
+            <div class="perf-key">FPS</div>
+          </div>
+          <div class="perf-box">
+            <div id="inferenceVal" class="perf-num">--</div>
+            <div class="perf-key">Inference (ms)</div>
+          </div>
+          <div class="perf-box">
+            <div id="avgFpsVal" class="perf-num">--</div>
+            <div class="perf-key">Avg FPS</div>
+          </div>
+          <div class="perf-box">
+            <div id="frameCount" class="perf-num">0</div>
+            <div class="perf-key">Frames</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="result-block">
+        <div class="result-label">Status Log</div>
+        <div id="statusLog" class="status-log">
+          <div class="log-entry">⏳ Ready. Click Start Detection.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Assignments Nav -->
+  <div class="assignments-section">
+    <h2>Assignments</h2>
+    <div class="assign-grid">
+      <a href="assigment/Assignment_1_Capture_Classify_MobileNet/index.html" class="assign-card">
+        <div class="assign-num">01</div>
+        <div class="assign-info">
+          <h3>Capture & Classify</h3>
+          <p>Capture webcam frames and classify objects using MobileNet</p>
+        </div>
+        <span class="arrow">→</span>
+      </a>
+      <a href="assigment/Assignment_2_Overlay_Labels_Video_Feed/index.html" class="assign-card">
+        <div class="assign-num">02</div>
+        <div class="assign-info">
+          <h3>Overlay Labels</h3>
+          <p>Overlay classification labels on the live video feed</p>
+        </div>
+        <span class="arrow">→</span>
+      </a>
+      <a href="assigment/Assignment_3_FPS_Performance_Analysis/index.html" class="assign-card">
+        <div class="assign-num">03</div>
+        <div class="assign-info">
+          <h3>FPS & Performance</h3>
+          <p>Measure FPS and analyze real-time inference performance</p>
+        </div>
+        <span class="arrow">→</span>
+      </a>
+    </div>
+  </div>
+
+  <footer>
+    <p>Practical 5 · Webcam-based Object Detection · CO3 – Apply</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Assignment 1 – Capture & Classify</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <header>
+    <a href="../../index.html" class="back">← Practical 5</a>
+    <div class="tag">Assignment 01</div>
+    <h1>Capture & Classify with MobileNet</h1>
+    <p>Capture webcam frames and classify objects using MobileNet · CO3 – Apply</p>
+  </header>
+
+  <div class="layout">
+
+    <!-- Webcam Panel -->
+    <div class="panel">
+      <div class="window-bar">
+        <span class="dot r"></span>
+        <span class="dot y"></span>
+        <span class="dot g"></span>
+        <span>webcam_feed.js</span>
+      </div>
+      <div class="video-wrap">
+        <video id="video" autoplay playsinline muted></video>
+        <canvas id="snap" class="hidden"></canvas>
+      </div>
+      <div class="btn-row">
+        <button class="btn green" onclick="startCam()">▶ Start</button>
+        <button class="btn blue" onclick="captureAndClassify()" id="classifyBtn" disabled>
+          📷 Capture & Classify
+        </button>
+        <button class="btn red" onclick="stopCam()" id="stopBtn" disabled>■ Stop</button>
+      </div>
+    </div>
+
+    <!-- Output Panel -->
+    <div class="panel output-panel">
+      <h2>Classification Output</h2>
+
+      <div class="snapshot-wrap">
+        <canvas id="snapshot" width="320" height="240"></canvas>
+        <div id="snapLabel" class="snap-label">No snapshot yet</div>
+      </div>
+
+      <div id="results" class="results-area">
+        <p class="hint">Start webcam and click "Capture & Classify"</p>
+      </div>
+
+      <div class="log-box" id="log">
+        <div class="log-line">Awaiting input...</div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

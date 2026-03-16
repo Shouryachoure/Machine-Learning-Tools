@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MobileNet Classification</title>
+
+<!-- FIXED TFJS (No Redirects) -->
+<script src="https://unpkg.com/@tensorflow/tfjs@3.21.0/dist/tf.min.js"></script>
+
+<!-- FIXED MobileNet -->
+<script src="https://unpkg.com/@tensorflow-models/mobilenet@2.1.0/dist/mobilenet.min.js"></script>
+
+<style>
+body { text-align:center; font-family:sans-serif; }
+img { width:300px; margin-top:15px; border-radius:12px; }
+button { padding:10px; margin:10px; background:#3498db; color:white; border:none; border-radius:8px; }
+</style>
+</head>
+
+<body>
+
+<h2>Image Classification (MobileNet Only)</h2>
+
+<img id="img" src="img1.jpg">
+
+<br>
+<button onclick="prev()">Previous</button>
+<button onclick="next()">Next</button>
+<button onclick="classifyImage()">Classify</button>
+
+<p id="result"></p>
+
+<script src="script.js"></script>
+
+</body>
+</html>

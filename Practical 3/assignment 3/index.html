@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Assignment 3 – RNN vs Dense</title>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+
+<style>
+  body {
+    background: linear-gradient(120deg, #0f0c29, #302b63, #24243e);
+    height: 100vh;
+    margin: 0;
+    font-family: Poppins, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+  }
+
+  .card {
+    width: 500px;
+    background: rgba(255,255,255,0.12);
+    padding: 30px;
+    border-radius: 18px;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  }
+
+  .result {
+    margin-top: 25px;
+    font-size: 22px;
+    font-weight: bold;
+  }
+</style>
+</head>
+
+<body>
+<div class="card">
+  <h1>Assignment 3<br>RNN vs Dense Comparison</h1>
+
+  <p>Training both models...</p>
+
+  <div class="result" id="rnnResult">RNN: Loading...</div>
+  <div class="result" id="denseResult">Dense: Loading...</div>
+</div>
+
+<script type="module" src="script.js"></script>
+</body>
+</html>

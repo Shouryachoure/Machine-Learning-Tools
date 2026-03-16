@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Assignment 1 – MobileNet Static Image</title>
+
+<script src="https://unpkg.com/@tensorflow/tfjs@3.21.0/dist/tf.min.js"></script>
+<script src="https://unpkg.com/@tensorflow-models/mobilenet@2.1.0/dist/mobilenet.min.js"></script>
+
+<style>
+body { text-align:center; font-family:Arial; padding:20px; }
+img { width:300px; border-radius:10px; margin:20px 0; }
+button { padding:10px 20px; background:#3498db; color:#fff; border:none; border-radius:8px; cursor:pointer; }
+</style>
+</head>
+
+<body>
+
+<h2>Assignment 1 – Classify Static Image</h2>
+
+<img id="img" src="img1.jpg">
+
+<br>
+<button onclick="classifyImage()">Classify Image</button>
+
+<p id="result"></p>
+
+<script src="script.js"></script>
+
+</body>
+</html>

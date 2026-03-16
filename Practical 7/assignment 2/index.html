@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Squat Counter Using PoseNet</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.21.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@2.2.1"></script>
+
+<style>
+body {
+  margin: 0;
+  background: linear-gradient(135deg,#112266,#000814);
+  font-family: Poppins, sans-serif;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+.box {
+  width: 720px;
+  padding: 25px;
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  background: rgba(255,255,255,0.10);
+  text-align: center;
+}
+#count {
+  font-size: 35px;
+  margin: 10px;
+  font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+<div class="box">
+  <h2>Squat Counter (PoseNet)</h2>
+  <p id="status">Loading PoseNet…</p>
+
+  <video id="webcam" width="500" autoplay playsinline></video>
+  <canvas id="canvas" width="500" height="400"></canvas>
+
+  <p id="count">Squats: 0</p>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

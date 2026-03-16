@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Assignment 1 – Sentiment Model Training</title>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+
+<style>
+  body {
+    background: linear-gradient(145deg, #141e30, #243b55);
+    margin: 0;
+    height: 100vh;
+    font-family: Poppins, sans-serif;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .card {
+    width: 450px;
+    padding: 30px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(8px);
+    text-align: center;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+  }
+  h1 { margin-bottom: 20px; }
+  .status {
+    margin-top: 20px;
+    font-size: 20px;
+    font-weight: bold;
+  }
+</style>
+</head>
+
+<body>
+<div class="card">
+  <h1>Assignment 1<br>Train Sentiment Classifier</h1>
+
+  <p>Training will start automatically...</p>
+
+  <div id="status" class="status">Status: Waiting</div>
+</div>
+
+<script type="module" src="script.js"></script>
+</body>
+</html>
