@@ -1,31 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Assignment 1 – MobileNet Static Image</title>
-
-<script src="https://unpkg.com/@tensorflow/tfjs@3.21.0/dist/tf.min.js"></script>
-<script src="https://unpkg.com/@tensorflow-models/mobilenet@2.1.0/dist/mobilenet.min.js"></script>
-
-<style>
-body { text-align:center; font-family:Arial; padding:20px; }
-img { width:300px; border-radius:10px; margin:20px 0; }
-button { padding:10px 20px; background:#3498db; color:#fff; border:none; border-radius:8px; cursor:pointer; }
-</style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Assignment 1 – Static Image Top-3</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+  <link rel="stylesheet" href="style.css"/>
 </head>
-
 <body>
+  <header>
+    <a href="../../index.html" class="back">← Practical 4</a>
+    <div class="tag">Assignment 01</div>
+    <h1>Static Image Classification – Top 3</h1>
+    <p>Load MobileNet and classify a static image; display top-3 predictions · CO3 – Apply</p>
+  </header>
 
-<h2>Assignment 1 – Classify Static Image</h2>
+  <div class="layout">
+    <div class="panel">
+      <div class="win-bar">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span>static_classifier.js</span>
+      </div>
+      <div class="upload-area" onclick="document.getElementById('imgInput').click()">
+        <div id="uploadPrompt">
+          <div style="font-size:36px">📁</div>
+          <div class="up-text">Click to upload image</div>
+          <div class="up-sub">JPG · PNG · WEBP</div>
+        </div>
+        <img id="staticImg" style="display:none; width:100%; max-height:300px; object-fit:contain;"/>
+        <input type="file" id="imgInput" accept="image/*" hidden onchange="loadImage(event)"/>
+      </div>
+      <div class="btn-row">
+        <button class="btn" id="classBtn" onclick="classify()" disabled>🔍 Classify</button>
+        <button class="btn outline" onclick="reset()">↺ Reset</button>
+      </div>
+    </div>
 
-<img id="img" src="img1.jpg">
+    <div class="panel result-panel">
+      <h2>Top-3 Predictions</h2>
+      <div id="topResult" class="top-result">Upload & classify an image</div>
+      <div id="predCards" class="pred-cards"></div>
+      <div class="stats-row">
+        <div class="stat-box"><div id="s_time" class="s-val">--</div><div class="s-key">ms</div></div>
+        <div class="stat-box"><div class="s-val" style="font-size:13px">MobileNet v2</div><div class="s-key">Model</div></div>
+      </div>
+      <div class="log-box" id="log"><div class="log-line">Ready.</div></div>
+    </div>
+  </div>
 
-<br>
-<button onclick="classifyImage()">Classify Image</button>
-
-<p id="result"></p>
-
-<script src="script.js"></script>
-
+  <script src="script.js"></script>
 </body>
 </html>

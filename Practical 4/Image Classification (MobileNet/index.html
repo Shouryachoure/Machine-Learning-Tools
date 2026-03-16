@@ -1,36 +1,124 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>MobileNet Classification</title>
-
-<!-- FIXED TFJS (No Redirects) -->
-<script src="https://unpkg.com/@tensorflow/tfjs@3.21.0/dist/tf.min.js"></script>
-
-<!-- FIXED MobileNet -->
-<script src="https://unpkg.com/@tensorflow-models/mobilenet@2.1.0/dist/mobilenet.min.js"></script>
-
-<style>
-body { text-align:center; font-family:sans-serif; }
-img { width:300px; margin-top:15px; border-radius:12px; }
-button { padding:10px; margin:10px; background:#3498db; color:white; border:none; border-radius:8px; }
-</style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Practical 4 – Image Classification MobileNet</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+  <link rel="stylesheet" href="style.css"/>
 </head>
-
 <body>
 
-<h2>Image Classification (MobileNet Only)</h2>
+  <div class="hero">
+    <div class="badge">CO3 – Apply</div>
+    <h1>Image Classification<br/><span>with MobileNet</span></h1>
+    <p class="subtitle">Load MobileNet · Classify Images · Browser-based Inference</p>
+  </div>
 
-<img id="img" src="img1.jpg">
+  <div class="main-container">
 
-<br>
-<button onclick="prev()">Previous</button>
-<button onclick="next()">Next</button>
-<button onclick="classifyImage()">Classify</button>
+    <!-- Upload Panel -->
+    <div class="upload-card">
+      <div class="card-header">
+        <span class="dot red"></span>
+        <span class="dot yellow"></span>
+        <span class="dot green"></span>
+        <span class="card-title">image_classifier.js</span>
+      </div>
 
-<p id="result"></p>
+      <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+        <div class="drop-icon">🖼</div>
+        <div class="drop-text">Click or drag & drop an image</div>
+        <div class="drop-sub">JPG, PNG, WEBP supported</div>
+        <input type="file" id="fileInput" accept="image/*" hidden onchange="handleFile(event)"/>
+      </div>
 
-<script src="script.js"></script>
+      <div class="preview-wrap" id="previewWrap" style="display:none">
+        <img id="previewImg" src="" alt="preview"/>
+      </div>
 
+      <div class="btn-row">
+        <button class="btn primary" id="classifyBtn" onclick="classifyImage()" disabled>
+          🔍 Classify Image
+        </button>
+        <button class="btn secondary" onclick="resetAll()">↺ Reset</button>
+      </div>
+    </div>
+
+    <!-- Results Panel -->
+    <div class="results-card">
+      <h2 class="results-title">Classification Results</h2>
+
+      <div class="result-block">
+        <div class="result-label">TOP PREDICTION</div>
+        <div id="topLabel" class="top-label">Upload an image to begin</div>
+        <div id="topConf"  class="top-conf">--</div>
+      </div>
+
+      <div class="result-block">
+        <div class="result-label">TOP 3 PREDICTIONS</div>
+        <div id="predList" class="pred-list">
+          <div class="pred-empty">No predictions yet</div>
+        </div>
+      </div>
+
+      <div class="result-block">
+        <div class="result-label">INFERENCE INFO</div>
+        <div class="info-grid">
+          <div class="info-box">
+            <div id="inferTime" class="info-val">--</div>
+            <div class="info-key">Time (ms)</div>
+          </div>
+          <div class="info-box">
+            <div id="modelName" class="info-val">MobileNet v2</div>
+            <div class="info-key">Model</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="log-box" id="log">
+        <div class="log-entry">⏳ Ready. Upload an image.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Assignments -->
+  <div class="assignments-section">
+    <h2>Assignments</h2>
+    <div class="assign-grid">
+      <a href="assigment/Assignment_1_Static_Image_Top3/index.html" class="assign-card">
+        <div class="assign-num">01</div>
+        <div class="assign-info">
+          <h3>Static Image & Top-3</h3>
+          <p>Load MobileNet and classify a static image; display top-3 predictions</p>
+        </div>
+        <span class="arrow">→</span>
+      </a>
+      <a href="assigment/Assignment_2_Test_5_Images/index.html" class="assign-card">
+        <div class="assign-num">02</div>
+        <div class="assign-info">
+          <h3>Test 5 Images</h3>
+          <p>Test classification accuracy on at least 5 different images</p>
+        </div>
+        <span class="arrow">→</span>
+      </a>
+      <a href="assigment/Assignment_3_MobileNet_vs_ResNet/index.html" class="assign-card">
+        <div class="assign-num">03</div>
+        <div class="assign-info">
+          <h3>MobileNet vs ResNet</h3>
+          <p>Compare MobileNet predictions with another pre-trained model</p>
+        </div>
+        <span class="arrow">→</span>
+      </a>
+    </div>
+  </div>
+
+  <footer>
+    <p>Practical 4 · Image Classification with MobileNet · CO3 – Apply</p>
+  </footer>
+
+  <script src="script.js"></script>
 </body>
 </html>

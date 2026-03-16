@@ -1,45 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Assignment 2 – Test 5 Images</title>
-
-<!-- FIXED TFJS -->
-<script src="https://unpkg.com/@tensorflow/tfjs@3.21.0/dist/tf.min.js"></script>
-
-<!-- FIXED MobileNet -->
-<script src="https://unpkg.com/@tensorflow-models/mobilenet@2.1.0/dist/mobilenet.min.js"></script>
-
-<style>
-body { text-align:center; font-family:Arial; padding:20px; }
-img { width:300px; border-radius:10px; margin:20px 0; }
-button {
-    padding:10px 20px;
-    background:#16a085;
-    color:white;
-    border:none;
-    border-radius:8px;
-    margin:5px;
-    cursor:pointer;
-}
-</style>
-
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Assignment 2 – Test 5 Images</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+  <link rel="stylesheet" href="style.css"/>
 </head>
-
 <body>
+  <header>
+    <a href="../../index.html" class="back">← Practical 4</a>
+    <div class="tag">Assignment 02</div>
+    <h1>Test Classification on 5 Images</h1>
+    <p>Upload 5 images and analyze classification accuracy · CO3 – Apply</p>
+  </header>
 
-<h2>Assignment 2 – Test Accuracy on 5 Images</h2>
+  <div class="upload-row">
+    <div class="up-info">
+      <h2>Upload 5 Images</h2>
+      <p>Select up to 5 images. Each will be classified by MobileNet v2.</p>
+      <label class="upload-btn">
+        📁 Choose Images
+        <input type="file" id="multiInput" accept="image/*" multiple hidden onchange="handleFiles(event)"/>
+      </label>
+      <button class="run-btn" id="runBtn" onclick="classifyAll()" disabled>⚡ Classify All</button>
+      <button class="reset-btn" onclick="resetAll()">↺ Reset</button>
+    </div>
+    <div class="summary-box" id="summaryBox">
+      <div class="sum-title">Summary</div>
+      <div class="sum-grid">
+        <div class="sum-item"><div id="s_total" class="sum-val">0</div><div class="sum-key">Images</div></div>
+        <div class="sum-item"><div id="s_done"  class="sum-val">0</div><div class="sum-key">Classified</div></div>
+        <div class="sum-item"><div id="s_avg"   class="sum-val">--</div><div class="sum-key">Avg Conf %</div></div>
+        <div class="sum-item"><div id="s_time"  class="sum-val">--</div><div class="sum-key">Avg ms</div></div>
+      </div>
+    </div>
+  </div>
 
-<img id="img" src="img1.jpg">
+  <div id="imageGrid" class="image-grid"></div>
 
-<br>
-<button onclick="prev()">Previous</button>
-<button onclick="next()">Next</button>
-<button onclick="classifyImage()">Classify</button>
+  <div class="log-box" id="log"><div class="log-line">Ready. Upload images.</div></div>
 
-<p id="result"></p>
-
-<script src="script.js"></script>
-
+  <script src="script.js"></script>
 </body>
 </html>
