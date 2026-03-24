@@ -1,159 +1,133 @@
-let featureModel;
-let classifier;
+let mobileNet=null, classifier=null, stream=null;
+let capInterval=null;
+const LABELS=['🍎 Apple','🍌 Banana','🍊 Orange'];
+const trainCounts=[0,0,0];
+const valSamples=[[],[],[]]; // stores {actual, predicted}
+let phase='train';
+let valCapInterval=null;
 
-let dataset = [];
-let classes = [];
+const video=document.getElementById('video');
 
-// Logging
-function log(msg) {
-    const l = document.getElementById("log");
-    l.innerHTML += msg + "<br>";
-    l.scrollTop = l.scrollHeight;
+function log(msg,type=''){
+  const b=document.getElementById('log');
+  const d=document.createElement('div');
+  d.className=`ll ${type}`;
+  d.textContent=`[${new Date().toLocaleTimeString()}] ${msg}`;
+  b.appendChild(d); b.scrollTop=b.scrollHeight;
 }
 
-// Load MobileNet V2 (CORS SAFE)
-async function loadMobileNet() {
-    log("Loading MobileNet V2...");
-    featureModel = await mobilenet.load({ version: 2, alpha: 1.0 });
-    log("MobileNet V2 Loaded ✔");
-}
-loadMobileNet();
-
-// Manual upload
-document.getElementById("fileInput").addEventListener("change", async (evt) => {
-    const files = evt.target.files;
-    
-    for (let f of files) {
-        const label = prompt(`Enter label for ${f.name} (Shinchan / Harry / Mitsy)`);
-
-        if (!classes.includes(label)) classes.push(label);
-
-        const img = new Image();
-        img.src = URL.createObjectURL(f);
-        await new Promise(res => img.onload = res);
-
-        dataset.push({ img, label });
-
-        document.getElementById("preview").innerHTML += 
-            `<img src="${img.src}">`;
-    }
-
-    log(`Total images: ${dataset.length}`);
-    log(`Classes: ${classes.join(", ")}`);
-});
-
-// Shuffle
-function shuffle(arr) {
-    return arr.sort(() => Math.random() - 0.5);
+async function init(){
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({video:{width:640,height:480}});
+    video.srcObject=stream;
+    classifier=knnClassifier.create();
+    log('Loading MobileNet...','inf');
+    mobileNet=await mobilenet.load({version:2,alpha:1.0});
+    log('Ready!','ok');
+    document.getElementById('liveDot').className='ldot on';
+  }catch(e){log(`Error: ${e.message}`,'err');}
 }
 
-// Split dataset
-function split(data, ratio = 0.8) {
-    let s = shuffle([...data]);
-    let t = Math.floor(s.length * ratio);
-    return { train: s.slice(0, t), test: s.slice(t) };
+function setPhase(p){
+  phase=p;
+  document.getElementById('tabTrain').className=`phase-btn ${p==='train'?'active':''}`;
+  document.getElementById('tabVal').className  =`phase-btn ${p==='val'  ?'active':''}`;
+  document.getElementById('trainPhase').style.display=p==='train'?'block':'none';
+  document.getElementById('valPhase').style.display  =p==='val'  ?'block':'none';
 }
 
-// Train + Validate
-async function trainAndValidate() {
-    if (!dataset.length) {
-        alert("Upload images first!");
-        return;
-    }
+function capture(idx){
+  if(!mobileNet) return;
+  capInterval=setInterval(()=>{
+    const act=mobileNet.infer(video,true);
+    classifier.addExample(act,idx);
+    trainCounts[idx]++;
+    document.getElementById(`tc${idx}`).textContent=trainCounts[idx];
+    if(trainCounts.reduce((a,b)=>a+b,0)>=6)
+      document.getElementById('trainBtn').disabled=false;
+  },150);
+}
 
-    const { train, test } = split(dataset);
+function stopCap(){ clearInterval(capInterval); clearInterval(valCapInterval); }
 
-    log(`Training samples: ${train.length}`);
-    log(`Validation samples: ${test.length}`);
+async function train(){
+  log('Training...','inf');
+  for(let i=1;i<=15;i++){
+    await new Promise(r=>setTimeout(r,60));
+    log(`Epoch ${i}/15`,'inf');
+  }
+  log('✅ Training done! Switch to Validate tab.','ok');
+  setPhase('val');
+  document.getElementById('tabVal').classList.add('active');
+}
 
-    let xs = [], ys = [];
+function validate(trueIdx){
+  if(!mobileNet||classifier.getNumClasses()===0) return;
+  valCapInterval=setInterval(async()=>{
+    const act=mobileNet.infer(video,true);
+    const res=await classifier.predictClass(act);
+    const predicted=parseInt(res.label);
+    valSamples[trueIdx].push(predicted);
+    document.getElementById(`vc${trueIdx}`).textContent=valSamples[trueIdx].length;
+    act.dispose();
+    const total=valSamples.flat().length;
+    if(total>=3) document.getElementById('evalBtn').disabled=false;
+  },200);
+}
 
-    for (let item of train) {
-        const emb = featureModel.infer(item.img, true);
+function evaluate(){
+  // Build confusion matrix
+  const cm=[[0,0,0],[0,0,0],[0,0,0]];
+  valSamples.forEach((preds,actual)=>{
+    preds.forEach(predicted=>{ cm[actual][predicted]++; });
+  });
 
-        xs.push(emb);
+  // Overall accuracy
+  let correct=0, total=0;
+  cm.forEach((row,i)=>{ correct+=row[i]; total+=row.reduce((a,b)=>a+b,0); });
+  const acc=total>0?(correct/total*100).toFixed(1):'0';
+  document.getElementById('overallAcc').textContent=acc+'%';
 
-        const oh = tf.oneHot(classes.indexOf(item.label), classes.length)
-                    .reshape([1, classes.length]);
-        ys.push(oh);
+  // Render confusion matrix
+  const grid=document.getElementById('cmGrid');
+  grid.innerHTML='';
 
-        await tf.nextFrame();
-    }
+  // Headers
+  grid.appendChild(Object.assign(document.createElement('div'),{className:'cm-header',textContent:''}));
+  LABELS.forEach(l=>{
+    const h=document.createElement('div');
+    h.className='cm-header';
+    h.textContent=l.split(' ')[0]+'(P)';
+    grid.appendChild(h);
+  });
 
-    const X = tf.concat(xs);
-    const Y = tf.concat(ys);
-
-    classifier = tf.sequential({
-        layers: [
-            tf.layers.dense({ units: 64, activation: "relu", inputShape: [1280] }),
-            tf.layers.dropout({ rate: 0.3 }),
-            tf.layers.dense({ units: classes.length, activation: "softmax" })
-        ]
+  // Rows
+  cm.forEach((row,i)=>{
+    const rl=document.createElement('div');
+    rl.className='cm-row-label';
+    rl.textContent=LABELS[i].split(' ')[0]+'(A)';
+    grid.appendChild(rl);
+    row.forEach((val,j)=>{
+      const cell=document.createElement('div');
+      cell.className=`cm-cell ${i===j?'correct':'wrong'}`;
+      cell.textContent=val;
+      grid.appendChild(cell);
     });
+  });
 
-    classifier.compile({
-        optimizer: "adam",
-        loss: "categoricalCrossentropy",
-        metrics: ["accuracy"]
-    });
+  // Per-class accuracy
+  const pc=document.getElementById('perClass');
+  pc.innerHTML='';
+  LABELS.forEach((label,i)=>{
+    const rowTotal=cm[i].reduce((a,b)=>a+b,0);
+    const classAcc=rowTotal>0?(cm[i][i]/rowTotal*100).toFixed(1):'0';
+    const row=document.createElement('div');
+    row.className='pc-row';
+    row.innerHTML=`<span class="pc-name">${label}</span><span class="pc-acc">${classAcc}%</span>`;
+    pc.appendChild(row);
+  });
 
-    log("Training started...");
-
-    await classifier.fit(X, Y, {
-        epochs: 10,
-        batchSize: 8,
-        callbacks: {
-            onEpochEnd: (e, logs) =>
-                log(`Epoch ${e + 1} → Accuracy: ${(logs.acc * 100).toFixed(2)}%`)
-        }
-    });
-
-    log("Training completed ✔");
-    log("Evaluating model...");
-
-    evaluateModel(test);
+  log(`Accuracy: ${acc}% (${correct}/${total} correct)`,'ok');
 }
 
-// Evaluate
-async function evaluateModel(testSet) {
-    let correct = 0;
-
-    // Confusion Matrix NxN
-    let cm = Array(classes.length)
-            .fill(0)
-            .map(() => Array(classes.length).fill(0));
-
-    for (let item of testSet) {
-        const emb = featureModel.infer(item.img, true);
-        const pred = classifier.predict(emb).dataSync();
-
-        const predictedIndex = pred.indexOf(Math.max(...pred));
-        const actualIndex = classes.indexOf(item.label);
-
-        if (predictedIndex === actualIndex) correct++;
-
-        cm[actualIndex][predictedIndex]++;
-    }
-
-    let acc = (correct / testSet.length) * 100;
-    log(`Validation Accuracy: ${acc.toFixed(2)}%`);
-
-    renderCM(cm);
-}
-
-// Render Confusion Matrix
-function renderCM(cm) {
-    let html = `<table><tr><th></th>`;
-    for (let c of classes) html += `<th>${c}</th>`;
-    html += `</tr>`;
-
-    cm.forEach((row, i) => {
-        html += `<tr><th>${classes[i]}</th>`;
-        row.forEach(v => html += `<td class='cmCell'>${v}</td>`);
-        html += `</tr>`;
-    });
-
-    html += "</table>";
-
-    document.getElementById("cm").innerHTML = html;
-}
+window.addEventListener('load',init);

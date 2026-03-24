@@ -1,201 +1,186 @@
-let featureModel;
-let classifier;
+let mobileNet=null, classifier=null, stream=null;
+let isPred=false, predRaf=null, capInterval=null;
 
-let dataset = [];
-let classes = [];
-let baselineAccuracy = 0;
+// Starting 3 categories always present
+const ALL_CATS=[
+  {id:0,emoji:'🍎',name:'Apple'},
+  {id:1,emoji:'🍌',name:'Banana'},
+  {id:2,emoji:'🍊',name:'Orange'},
+  {id:3,emoji:'🍇',name:'Grapes'},
+  {id:4,emoji:'🍓',name:'Strawberry'},
+  {id:5,emoji:'🥭',name:'Mango'},
+];
 
-// Log helper
-function log(msg) {
-    const box = document.getElementById("log");
-    box.innerHTML += msg + "<br>";
-    box.scrollTop = box.scrollHeight;
+let activeIds=[0,1,2]; // start with 3
+const sampleCounts={};
+ALL_CATS.forEach(c=>sampleCounts[c.id]=0);
+
+const video=document.getElementById('video');
+
+function log(msg,type=''){
+  const b=document.getElementById('log');
+  const d=document.createElement('div');
+  d.className=`ll ${type}`;
+  d.textContent=`[${new Date().toLocaleTimeString()}] ${msg}`;
+  b.appendChild(d); b.scrollTop=b.scrollHeight;
 }
 
-// Load MobileNet V1 (100% safe)
-async function initMobileNet() {
-    log("Loading MobileNet V1 (Safe URL)...");
-    featureModel = await mobilenet.load();
-    log("MobileNet V1 Loaded ✔ (1024-D Embeddings)");
-}
-initMobileNet();
-
-// Upload images manually
-document.getElementById("fileInput").addEventListener("change", async (evt) => {
-    const files = evt.target.files;
-
-    for (let f of files) {
-        const label = prompt(`Enter label for: ${f.name}`);
-
-        if (!label) continue;
-        if (!classes.includes(label)) classes.push(label);
-
-        const img = new Image();
-        img.src = URL.createObjectURL(f);
-        await new Promise(res => img.onload = res);
-
-        dataset.push({ img, label });
-
-        document.getElementById("preview").innerHTML += 
-            `<img src="${img.src}">`;
-    }
-
-    log(`Total images: ${dataset.length}`);
-    log(`Classes: ${classes.join(", ")}`);
-});
-
-// Shuffle utility
-function shuffle(a) {
-    return a.sort(() => Math.random() - 0.5);
+async function init(){
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({video:{width:640,height:480}});
+    video.srcObject=stream;
+    classifier=knnClassifier.create();
+    log('Loading MobileNet...','inf');
+    mobileNet=await mobilenet.load({version:2,alpha:1.0});
+    log('Ready! Capture samples for each category.','ok');
+    document.getElementById('liveDot').className='ldot on';
+    renderActiveClasses();
+    renderTimeline();
+  }catch(e){log(`Error: ${e.message}`,'err');}
 }
 
-// 80/20 train-test split
-function split(data) {
-    let s = shuffle([...data]);
-    let t = Math.floor(s.length * 0.8);
-    return { train: s.slice(0,t), test: s.slice(t) };
+function renderActiveClasses(){
+  const area=document.getElementById('activeClasses');
+  area.innerHTML='';
+  activeIds.forEach(id=>{
+    const cat=ALL_CATS[id];
+    const row=document.createElement('div');
+    row.className='cat-row';
+    row.innerHTML=`
+      <span class="cat-emoji">${cat.emoji}</span>
+      <span class="cat-name">${cat.name}</span>
+      <span class="cat-count" id="cnt-${id}">${sampleCounts[id]} samples</span>
+      <button class="cat-capture"
+        onmousedown="startCapture(${id})"
+        onmouseup="stopCap()"
+        ontouchstart="startCapture(${id})"
+        ontouchend="stopCap()">
+        Hold
+      </button>`;
+    area.appendChild(row);
+  });
 }
 
-// -------- INITIAL TRAINING --------
-async function trainModel() {
-    if (!dataset.length) return alert("Upload images first!");
+function renderTimeline(){
+  const tl=document.getElementById('timeline');
+  const items=activeIds.map(id=>{
+    const cat=ALL_CATS[id];
+    return `<div class="tl-item">
+      <div class="tl-dot"></div>
+      <span class="tl-name">${cat.emoji} ${cat.name}</span>
+      <span class="tl-samples">${sampleCounts[id]} samples</span>
+    </div>`;
+  }).join('');
+  tl.innerHTML=`<div class="tl-label">CATEGORY TIMELINE</div>${items||'<div class="tl-empty">No categories yet</div>'}`;
+}
 
-    const { train, test } = split(dataset);
+function addCategory(){
+  const sel=document.getElementById('newCatSelect');
+  const id=parseInt(sel.value);
+  if(activeIds.includes(id)){ log('Already added!','err'); return; }
+  activeIds.push(id);
+  const cat=ALL_CATS[id];
+  log(`Added ${cat.emoji} ${cat.name} (${activeIds.length} categories now)`, 'ok');
+  renderActiveClasses();
+  renderTimeline();
 
-    let xs = [], ys = [];
+  // Remove from dropdown
+  const opt=sel.querySelector(`option[value="${id}"]`);
+  if(opt) opt.remove();
 
-    log("Extracting embeddings...");
+  updateAnalysis();
+}
 
-    for (let item of train) {
-        const emb = featureModel.infer(item.img, true); // 1024-D
-        xs.push(emb);
+function startCapture(id){
+  if(!mobileNet) return;
+  capInterval=setInterval(()=>{
+    const act=mobileNet.infer(video,true);
+    classifier.addExample(act,id);
+    sampleCounts[id]++;
+    const el=document.getElementById(`cnt-${id}`);
+    if(el) el.textContent=sampleCounts[id]+' samples';
+    renderTimeline();
 
-        const oh = tf.oneHot(classes.indexOf(item.label), classes.length)
-                    .reshape([1, classes.length]);
-        ys.push(oh);
+    const totalSamples=Object.values(sampleCounts).reduce((a,b)=>a+b,0);
+    if(totalSamples>=activeIds.length*2)
+      document.getElementById('predBtn').disabled=false;
+  },150);
+}
 
-        await tf.nextFrame();
-    }
+function stopCap(){ clearInterval(capInterval); }
 
-    const X = tf.concat(xs);
-    const Y = tf.concat(ys);
+function togglePred(){
+  isPred=!isPred;
+  const btn=document.getElementById('predBtn');
+  btn.textContent=isPred?'⏹ Stop Predicting':'🔍 Start Predicting';
+  if(isPred) predLoop();
+  else cancelAnimationFrame(predRaf);
+}
 
-    classifier = tf.sequential({
-        layers: [
-            tf.layers.dense({ units: 64, activation: "relu", inputShape: [1024] }),
-            tf.layers.dropout({ rate: 0.3 }),
-            tf.layers.dense({ units: classes.length, activation: "softmax" })
-        ]
+async function predLoop(){
+  if(!isPred) return;
+  if(classifier.getNumClasses()>0){
+    const act=mobileNet.infer(video,true);
+    const res=await classifier.predictClass(act);
+    const predId=parseInt(res.label);
+    const cat=ALL_CATS[predId];
+    const conf=(res.confidences[predId]*100).toFixed(1);
+
+    document.getElementById('cpLabel').textContent=`${cat.emoji} ${cat.name}`;
+    document.getElementById('cpConf').textContent=`Confidence: ${conf}%`;
+
+    // Confidence bars
+    const bars=document.getElementById('confBars');
+    bars.innerHTML='';
+    activeIds.forEach(id=>{
+      const c=((res.confidences[id]||0)*100).toFixed(1);
+      const row=document.createElement('div');
+      row.className='cb-row';
+      row.innerHTML=`
+        <span class="cb-name">${ALL_CATS[id].emoji} ${ALL_CATS[id].name}</span>
+        <div class="cb-wrap"><div class="cb-fill" style="width:${c}%"></div></div>
+        <span class="cb-pct">${c}%</span>`;
+      bars.appendChild(row);
     });
 
-    classifier.compile({
-        optimizer: "adam",
-        loss: "categoricalCrossentropy",
-        metrics: ["accuracy"]
-    });
-
-    log("Training started...");
-
-    await classifier.fit(X, Y, {
-        epochs: 10,
-        batchSize: 8,
-        callbacks: {
-            onEpochEnd: (ep, logs) =>
-                log(`Epoch ${ep + 1}: ${(logs.acc * 100).toFixed(2)}% accuracy`)
-        }
-    });
-
-    baselineAccuracy = evaluate(test);
-    log(`✔ Baseline Accuracy: ${baselineAccuracy.toFixed(2)}%`);
+    act.dispose();
+    updateAnalysis();
+  }
+  predRaf=requestAnimationFrame(predLoop);
 }
 
-// -------- ADD NEW CATEGORY ----------
-function addMore() {
-    document.getElementById("fileInput").click();
+function updateAnalysis(){
+  const n=activeIds.length;
+  const txt=
+    n<=3 ? `${n} categories loaded. Model has clear decision boundaries with few classes.`
+    : n<=4 ? `${n} categories: slight increase in confusion between similar-looking items expected.`
+    : `${n} categories: with more classes, per-class confidence may drop. Capture more samples per class to maintain accuracy.`;
+  document.getElementById('analysisText').textContent=txt;
 }
 
-// -------- RETRAIN AFTER ADDING NEW CATEGORY ----------
-async function retrainModel() {
-    if (!dataset.length) return alert("Upload initial dataset!");
+function resetAll(){
+  ALL_CATS.forEach(c=>sampleCounts[c.id]=0);
+  activeIds=[0,1,2];
+  classifier=knnClassifier.create();
+  isPred=false;
+  cancelAnimationFrame(predRaf);
+  document.getElementById('predBtn').disabled=true;
+  document.getElementById('predBtn').textContent='🔍 Start Predicting';
+  document.getElementById('cpLabel').textContent='--';
+  document.getElementById('cpConf').textContent='--';
+  document.getElementById('confBars').innerHTML='';
+  document.getElementById('analysisText').textContent='Add categories and start predicting to see analysis.';
 
-    log("Retraining with added category...");
+  // Restore dropdown
+  const sel=document.getElementById('newCatSelect');
+  sel.innerHTML=`
+    <option value="3">🍇 Grapes</option>
+    <option value="4">🍓 Strawberry</option>
+    <option value="5">🥭 Mango</option>`;
 
-    const { train, test } = split(dataset);
-
-    let xs = [], ys = [];
-
-    for (let item of train) {
-        const emb = featureModel.infer(item.img, true);
-        xs.push(emb);
-
-        const oh = tf.oneHot(classes.indexOf(item.label), classes.length)
-                    .reshape([1, classes.length]);
-        ys.push(oh);
-    }
-
-    const X = tf.concat(xs);
-    const Y = tf.concat(ys);
-
-    classifier = tf.sequential({
-        layers: [
-            tf.layers.dense({ units: 64, activation: "relu", inputShape: [1024] }),
-            tf.layers.dropout({ rate: 0.3 }),
-            tf.layers.dense({ units: classes.length, activation: "softmax" })
-        ]
-    });
-
-    classifier.compile({
-        optimizer: "adam",
-        loss: "categoricalCrossentropy",
-        metrics: ["accuracy"]
-    });
-
-    await classifier.fit(X, Y, { epochs: 10 });
-
-    let newAcc = evaluate(test);
-    log(`🔥 New Accuracy After Retraining: ${newAcc.toFixed(2)}%`);
-
-    let diff = newAcc - baselineAccuracy;
-    log(`📊 Accuracy Change: ${diff.toFixed(2)}%`);
+  renderActiveClasses();
+  renderTimeline();
+  log('Reset complete.','inf');
 }
 
-// -------- EVALUATION & CONFUSION MATRIX --------
-function evaluate(testSet) {
-    let correct = 0;
-
-    let cm = Array(classes.length)
-        .fill(0)
-        .map(() => Array(classes.length).fill(0));
-
-    for (let item of testSet) {
-        const emb = featureModel.infer(item.img, true);
-        const pred = classifier.predict(emb).dataSync();
-
-        const predicted = pred.indexOf(Math.max(...pred));
-        const actual = classes.indexOf(item.label);
-
-        if (predicted === actual) correct++;
-
-        cm[actual][predicted]++;
-    }
-
-    renderCM(cm);
-
-    return (correct / testSet.length) * 100;
-}
-
-function renderCM(cm) {
-    let html = `<table><tr><th></th>`;
-    for (let c of classes) html += `<th>${c}</th>`;
-    html += `</tr>`;
-
-    cm.forEach((row, i) => {
-        html += `<tr><th>${classes[i]}</th>`;
-        row.forEach(v => html += `<td class="cmCell">${v}</td>`);
-        html += `</tr>`;
-    });
-
-    html += "</table>";
-
-    document.getElementById("cm").innerHTML = html;
-}
+window.addEventListener('load',init);

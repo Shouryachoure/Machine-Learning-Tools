@@ -1,50 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Squat Counter Using PoseNet</title>
-
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.21.0"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@2.2.1"></script>
-
-<style>
-body {
-  margin: 0;
-  background: linear-gradient(135deg,#112266,#000814);
-  font-family: Poppins, sans-serif;
-  color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
-.box {
-  width: 720px;
-  padding: 25px;
-  border-radius: 20px;
-  backdrop-filter: blur(10px);
-  background: rgba(255,255,255,0.10);
-  text-align: center;
-}
-#count {
-  font-size: 35px;
-  margin: 10px;
-  font-weight: bold;
-}
-</style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Assignment 2 – Exercise Counter</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet"></script>
+  <link rel="stylesheet" href="style.css"/>
 </head>
-
 <body>
-<div class="box">
-  <h2>Squat Counter (PoseNet)</h2>
-  <p id="status">Loading PoseNet…</p>
+  <header>
+    <a href="../../index.html" class="back">← Practical 7</a>
+    <div class="tag">Assignment 02</div>
+    <h1>Exercise Rep Counter</h1>
+    <p>Count squat repetitions using knee angle detection · CO3 – Apply</p>
+  </header>
 
-  <video id="webcam" width="500" autoplay playsinline></video>
-  <canvas id="canvas" width="500" height="400"></canvas>
+  <div class="layout">
+    <div class="panel">
+      <div class="win-bar">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span>rep_counter.js</span>
+        <span id="liveDot" class="ldot off">●</span>
+      </div>
+      <div class="feed-wrap">
+        <video id="video" autoplay playsinline muted></video>
+        <canvas id="canvas"></canvas>
+      </div>
+      <div class="btn-row">
+        <button class="btn" onclick="start()">▶ Start</button>
+        <button class="btn outline" id="stopBtn" onclick="stop()" disabled>■ Stop</button>
+        <button class="btn reset-btn" onclick="resetCount()">↺</button>
+      </div>
+    </div>
 
-  <p id="count">Squats: 0</p>
-</div>
+    <div class="panel side-panel">
+      <h2>Rep Counter</h2>
 
-<script src="script.js"></script>
+      <div class="counter-display">
+        <div id="repCount" class="rep-num">0</div>
+        <div class="rep-label">SQUATS</div>
+      </div>
+
+      <div class="phase-box" id="phaseBox">
+        <div id="phaseText" class="phase-text">--</div>
+        <div class="phase-sub">Current Phase</div>
+      </div>
+
+      <div class="angle-section">
+        <div class="section-label">KNEE ANGLES</div>
+        <div class="angle-grid">
+          <div class="angle-box">
+            <div id="leftAngle"  class="angle-val">--°</div>
+            <div class="angle-key">Left Knee</div>
+          </div>
+          <div class="angle-box">
+            <div id="rightAngle" class="angle-val">--°</div>
+            <div class="angle-key">Right Knee</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="guide-box">
+        <div class="section-label">HOW TO USE</div>
+        <div class="guide-text">
+          Stand facing the camera.<br/>
+          Perform squats slowly.<br/>
+          Knee angle &lt; 100° = DOWN phase.<br/>
+          Knee angle &gt; 160° = UP phase.<br/>
+          One rep = DOWN → UP.
+        </div>
+      </div>
+
+      <div class="log-box" id="log">
+        <div class="ll">Ready.</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>

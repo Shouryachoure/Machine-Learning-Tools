@@ -1,48 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Pose Detection - Keypoints & Skeleton</title>
-
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.21.0"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@2.2.1"></script>
-
-<style>
-body {
-  margin: 0;
-  background: linear-gradient(135deg,#003366,#001122);
-  font-family: Poppins, sans-serif;
-  color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
-.container {
-  width: 700px;
-  padding: 30px;
-  border-radius: 20px;
-  backdrop-filter: blur(15px);
-  background: rgba(255,255,255,0.08);
-  box-shadow: 0 0 30px rgba(0,0,0,0.4);
-  text-align: center;
-}
-canvas, video {
-  border-radius: 12px;
-}
-</style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Assignment 1 – Keypoints & Skeleton</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet"></script>
+  <link rel="stylesheet" href="style.css"/>
 </head>
-
 <body>
-<div class="container">
-  <h2>Pose Detection (Keypoints + Skeleton)</h2>
-  <p id="status">Loading PoseNet…</p>
+  <header>
+    <a href="../../index.html" class="back">← Practical 7</a>
+    <div class="tag">Assignment 01</div>
+    <h1>Detect Keypoints & Visualize Skeleton</h1>
+    <p>Detect all 17 human pose keypoints and draw full skeleton · CO3 – Apply</p>
+  </header>
 
-  <video id="webcam" autoplay playsinline width="500"></video>
-  <canvas id="output" width="500" height="400"></canvas>
+  <div class="layout">
+    <div class="panel">
+      <div class="win-bar">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span>skeleton_visualizer.js</span>
+        <span id="liveDot" class="ldot off">●</span>
+      </div>
+      <div class="feed-wrap">
+        <video id="video" autoplay playsinline muted></video>
+        <canvas id="canvas"></canvas>
+      </div>
+      <div class="btn-row">
+        <button class="btn" onclick="start()">▶ Start</button>
+        <button class="btn outline" id="stopBtn" onclick="stop()" disabled>■ Stop</button>
+      </div>
+    </div>
 
-</div>
+    <div class="panel info-panel">
+      <h2>Keypoint Data</h2>
 
-<script src="script.js"></script>
+      <div class="score-row">
+        <div class="score-box">
+          <div id="poseScore" class="score-val">--</div>
+          <div class="score-key">Pose Score</div>
+        </div>
+        <div class="score-box">
+          <div id="kpCount" class="score-val">--</div>
+          <div class="score-key">Active KPs</div>
+        </div>
+        <div class="score-box">
+          <div id="fpsVal" class="score-val">--</div>
+          <div class="score-key">FPS</div>
+        </div>
+      </div>
+
+      <div class="kp-section">
+        <div class="section-label">ALL 17 KEYPOINTS</div>
+        <div id="kpGrid" class="kp-grid">
+          <div class="kp-waiting">Start detection</div>
+        </div>
+      </div>
+
+      <div class="log-box" id="log">
+        <div class="ll">Ready.</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>

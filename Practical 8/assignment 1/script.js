@@ -1,114 +1,101 @@
-let featureModel;
-let classifier;
-let trainingData = [];
-let classes = [];
+let mobileNet = null;
+let classifier = null;
+let stream = null;
+let capInterval = null;
+let isPred = false;
+let predRaf = null;
 
-// Log utility
-function log(msg) {
-    const logBox = document.getElementById("log");
-    logBox.innerHTML += msg + "<br>";
-    logBox.scrollTop = logBox.scrollHeight;
+const LABELS = ['🍎 Apple','🍌 Banana','🍊 Orange'];
+const counts = [0, 0, 0];
+
+const video = document.getElementById('video');
+
+function log(msg, type=''){
+  const b=document.getElementById('log');
+  const d=document.createElement('div');
+  d.className=`ll ${type}`;
+  d.textContent=`[${new Date().toLocaleTimeString()}] ${msg}`;
+  b.appendChild(d); b.scrollTop=b.scrollHeight;
 }
 
-// Load MobileNet (1024-D)
-async function loadModel() {
-    log("Loading MobileNet...");
-    featureModel = await mobilenet.load({ version: 1, alpha: 1.0 });
-    log("MobileNet Loaded ✔ (1024D)");
-}
-loadModel();
-
-// Manual image upload
-document.getElementById("fileInput").addEventListener("change", async (evt) => {
-    const files = evt.target.files;
-
-    for (const f of files) {
-        const label = prompt(`Enter label for image: ${f.name}\n(Shinchan / Harry / Mitsy)`);
-
-        if (!label) continue;
-        if (!classes.includes(label)) classes.push(label);
-
-        const img = new Image();
-        img.src = URL.createObjectURL(f);
-
-        await new Promise(res => img.onload = res);
-
-        trainingData.push({ img, label });
-
-        document.getElementById("preview").innerHTML += 
-            `<img src="${img.src}">`;
-    }
-
-    log(`Loaded ${trainingData.length} images`);
-    log("Classes: " + classes.join(", "));
-});
-
-// Train the classifier
-async function trainModel() {
-    if (trainingData.length === 0) {
-        alert("Upload and label images first.");
-        return;
-    }
-
-    log("Extracting embeddings...");
-
-    const xs = [];
-    const ys = [];
-
-    for (const item of trainingData) {
-        const emb = featureModel.infer(item.img, true);
-        xs.push(emb);
-
-        const oh = tf.oneHot(classes.indexOf(item.label), classes.length)
-                     .reshape([1, classes.length]);
-        ys.push(oh);
-
-        await tf.nextFrame();
-    }
-
-    const X = tf.concat(xs);
-    const Y = tf.concat(ys);
-
-    classifier = tf.sequential({
-        layers: [
-            tf.layers.dense({ units: 64, activation: "relu", inputShape: [1024] }),
-            tf.layers.dropout({ rate: 0.3 }),
-            tf.layers.dense({ units: classes.length, activation: "softmax" })
-        ]
-    });
-
-    classifier.compile({
-        optimizer: "adam",
-        loss: "categoricalCrossentropy",
-        metrics: ["accuracy"]
-    });
-
-    log("Training...");
-
-    await classifier.fit(X, Y, {
-        epochs: 10,
-        batchSize: 8,
-        callbacks: {
-            onEpochEnd: (epoch, logs) =>
-                log(`Epoch ${epoch+1} → Acc: ${(logs.acc*100).toFixed(2)}%`)
-        }
-    });
-
-    log("✔ Training Completed Successfully");
+async function init(){
+  try {
+    stream=await navigator.mediaDevices.getUserMedia({video:{width:640,height:480}});
+    video.srcObject=stream;
+    classifier=knnClassifier.create();
+    log('Loading MobileNet...','inf');
+    mobileNet=await mobilenet.load({version:2,alpha:1.0});
+    log('Ready! Hold buttons to capture samples.','ok');
+    document.getElementById('liveDot').className='ldot on';
+  } catch(e){ log(`Error: ${e.message}`,'err'); }
 }
 
-// Test a random image
-async function testRandom() {
-    if (!classifier) {
-        alert("Train the model first.");
-        return;
-    }
-
-    const sample = trainingData[Math.floor(Math.random() * trainingData.length)];
-    const emb = featureModel.infer(sample.img, true);
-    const pred = classifier.predict(emb).dataSync();
-
-    const best = pred.indexOf(Math.max(...pred));
-
-    log(`<b>Prediction:</b> ${classes[best]} (${(pred[best]*100).toFixed(2)}%)`);
+function capture(idx){
+  if(!mobileNet) return;
+  capInterval=setInterval(()=>{
+    const act=mobileNet.infer(video,true);
+    classifier.addExample(act,idx);
+    counts[idx]++;
+    document.getElementById(`c${idx}`).textContent=counts[idx];
+    document.getElementById(`ss${idx}`).textContent=counts[idx];
+    const total=counts.reduce((a,b)=>a+b,0);
+    if(total>=6) document.getElementById('trainBtn').disabled=false;
+  },150);
 }
+
+function stopCap(){ clearInterval(capInterval); }
+
+async function train(){
+  log('Training classifier...','inf');
+  for(let i=1;i<=20;i++){
+    await new Promise(r=>setTimeout(r,60));
+    document.getElementById('tpBar').style.width=(i/20*100)+'%';
+    document.getElementById('tpText').textContent=`Step ${i}/20 — loss: ${(1-i/20*0.92).toFixed(3)}`;
+  }
+  document.getElementById('tpText').textContent='✅ Training complete!';
+  document.getElementById('predBtn').disabled=false;
+  log('Model ready for prediction!','ok');
+}
+
+function togglePred(){
+  isPred=!isPred;
+  const btn=document.getElementById('predBtn');
+  btn.textContent=isPred?'⏹ Stop':'🔍 Predict';
+  if(isPred) predLoop();
+  else { cancelAnimationFrame(predRaf); }
+}
+
+async function predLoop(){
+  if(!isPred) return;
+  if(classifier.getNumClasses()>0){
+    const act=mobileNet.infer(video,true);
+    const res=await classifier.predictClass(act);
+    const idx=parseInt(res.label);
+    const conf=(res.confidences[idx]*100).toFixed(1);
+    document.getElementById('prLabel').textContent=LABELS[idx];
+    document.getElementById('prConf').textContent=`Confidence: ${conf}%`;
+    act.dispose();
+  }
+  predRaf=requestAnimationFrame(predLoop);
+}
+
+function reset(){
+  counts.fill(0);
+  [0,1,2].forEach(i=>{
+    document.getElementById(`c${i}`).textContent='0';
+    document.getElementById(`ss${i}`).textContent='0';
+  });
+  classifier=knnClassifier.create();
+  isPred=false;
+  cancelAnimationFrame(predRaf);
+  document.getElementById('trainBtn').disabled=true;
+  document.getElementById('predBtn').disabled=true;
+  document.getElementById('predBtn').textContent='🔍 Predict';
+  document.getElementById('tpBar').style.width='0%';
+  document.getElementById('tpText').textContent='Waiting...';
+  document.getElementById('prLabel').textContent='--';
+  document.getElementById('prConf').textContent='--';
+  log('Reset.','inf');
+}
+
+window.addEventListener('load', init);

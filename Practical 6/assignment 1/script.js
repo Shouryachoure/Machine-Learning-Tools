@@ -1,70 +1,57 @@
-// Small training dataset
-const sentences = [
-    "I love this product", "This is amazing", "I feel great today",
-    "What a wonderful experience", "Absolutely fantastic work",
-    "I hate this", "This is terrible", "Worst day ever",
-    "I am sad", "This makes me angry"
-];
+let video = document.getElementById("video");
+let canvas = document.getElementById("canvas");
+let ctx = canvas.getContext("2d");
 
-const labels = [1,1,1,1,1, 0,0,0,0,0]; // 1 = Positive, 0 = Negative
+let net, running = false;
 
-let model;
+async function loadModel() {
+  net = await posenet.load();
+}
 
-async function trainModel() {
-    // Text vectorizer (Naive)
-    const tokenizer = new Map();
-    let index = 1;
+async function startCamera() {
+  const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+  video.srcObject = stream;
 
-    function encode(text) {
-        return text.toLowerCase().split(" ").map(w => {
-            if (!tokenizer.has(w)) tokenizer.set(w, index++);
-            return tokenizer.get(w);
-        });
+  video.onloadedmetadata = () => {
+    video.play();
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    running = true;
+    detect();
+  };
+}
+
+function stopCamera() {
+  running = false;
+}
+
+async function detect() {
+  if (!running) return;
+
+  const pose = await net.estimateSinglePose(video);
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  pose.keypoints.forEach(p => {
+    if (p.score > 0.5) {
+      ctx.beginPath();
+      ctx.arc(p.position.x, p.position.y, 5, 0, 2 * Math.PI);
+      ctx.fillStyle = "red";
+      ctx.fill();
     }
+  });
 
-    const xs = tf.tensor2d(sentences.map(t => {
-        const arr = encode(t);
-        while (arr.length < 6) arr.push(0);
-        return arr.slice(0, 6);
-    }));
+  const pairs = posenet.getAdjacentKeyPoints(pose.keypoints, 0.5);
 
-    const ys = tf.tensor1d(labels);
+  pairs.forEach(pair => {
+    ctx.beginPath();
+    ctx.moveTo(pair[0].position.x, pair[0].position.y);
+    ctx.lineTo(pair[1].position.x, pair[1].position.y);
+    ctx.strokeStyle = "lime";
+    ctx.stroke();
+  });
 
-    // Dense model
-    model = tf.sequential();
-    model.add(tf.layers.embedding({ inputDim: 200, outputDim: 16, inputLength: 6 }));
-    model.add(tf.layers.flatten());
-    model.add(tf.layers.dense({ units: 8, activation: "relu" }));
-    model.add(tf.layers.dense({ units: 1, activation: "sigmoid" }));
-
-    model.compile({ optimizer: "adam", loss: "binaryCrossentropy", metrics: ["accuracy"] });
-
-    await model.fit(xs, ys, { epochs: 20 });
-
-    console.log("Model trained!");
-    return encode;
+  requestAnimationFrame(detect);
 }
 
-let encoder;
-
-(async () => {
-    encoder = await trainModel();
-})();
-
-async function analyze() {
-    const text = document.getElementById("inputText").value.trim();
-    if (!text) return;
-
-    const arr = encoder(text);
-    while (arr.length < 6) arr.push(0);
-
-    const inputTensor = tf.tensor2d([arr]);
-
-    const prediction = model.predict(inputTensor);
-    const prob = (await prediction.data())[0];
-
-    const sentiment = prob > 0.5 ? "Positive 😊" : "Negative 😡";
-
-    document.getElementById("output").innerHTML =
-        `${sentiment}<br><span style="font-size:18px;">Confidence: ${(prob*100).toFixed(2)}%</span>`;
-}
+loadModel();

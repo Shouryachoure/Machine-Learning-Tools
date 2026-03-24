@@ -1,130 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Assignment 3 – Incremental Learning</title>
-
-<!-- TensorFlow.js -->
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.21.0"></script>
-
-<!-- MobileNet V1 → 100% NO CORS PROBLEM -->
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@1.0.0"></script>
-
-<!-- Font -->
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-
-<style>
-    body {
-        margin: 0;
-        background: #0d0e16;
-        font-family: "Poppins", sans-serif;
-        color: white;
-    }
-
-    .header {
-        width: 100%;
-        text-align: center;
-        padding: 22px;
-        background: rgba(255,255,255,0.05);
-        backdrop-filter: blur(16px);
-        border-bottom: 1px solid rgba(255,255,255,0.1);
-        font-size: 26px;
-        font-weight: 600;
-    }
-
-    .card {
-        width: 950px;
-        margin: 40px auto;
-        padding: 35px;
-        border-radius: 18px;
-        background: rgba(255,255,255,0.08);
-        border: 1px solid rgba(255,255,255,0.1);
-        backdrop-filter: blur(18px);
-        box-shadow: 0 10px 35px rgba(0,0,0,0.4);
-    }
-
-    button {
-        padding: 10px 25px;
-        font-size: 16px;
-        border-radius: 8px;
-        border: none;
-        cursor: pointer;
-        background: linear-gradient(135deg, #4b7cff, #82b6ff);
-        color: white;
-        margin: 10px 10px 20px 0;
-        transition: 0.3s;
-        font-weight: 500;
-    }
-    button:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 4px 18px rgba(80,120,255,0.45);
-    }
-
-    #log {
-        height: 230px;
-        background: rgba(0,0,0,0.35);
-        border-radius: 12px;
-        padding: 14px;
-        overflow-y: auto;
-        font-size: 14px;
-        border: 1px solid rgba(255,255,255,0.15);
-    }
-
-    #preview img {
-        width: 95px;
-        height: 95px;
-        object-fit: cover;
-        margin: 6px;
-        border-radius: 12px;
-        border: 1px solid rgba(255,255,255,0.18);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-    }
-
-    table {
-        width: 100%;
-        margin-top: 20px;
-        border-collapse: collapse;
-        text-align: center;
-    }
-
-    th, td {
-        padding: 12px;
-        border: 1px solid rgba(255,255,255,0.18);
-        border-radius: 6px;
-    }
-    th {
-        background: rgba(255,255,255,0.12);
-    }
-    .cmCell {
-        background: rgba(255,255,255,0.08);
-    }
-</style>
-
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Assignment 3 – Incremental Categories</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/knn-classifier"></script>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
+  <header>
+    <a href="../../index.html" class="back">← Practical 8</a>
+    <div class="tag">Assignment 03</div>
+    <h1>Incremental Category Learning</h1>
+    <p>Add new categories one by one and analyze performance changes · CO4 – Create</p>
+  </header>
 
-<div class="header">Assignment 3 – Incremental Learning Using MobileNet</div>
+  <div class="layout">
+    <div class="panel">
+      <div class="win-bar">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span>incremental_learning.js</span>
+        <span id="liveDot" class="ldot off">●</span>
+      </div>
+      <div class="feed-wrap">
+        <video id="video" autoplay playsinline muted></video>
+      </div>
 
-<div class="card">
+      <div class="active-classes" id="activeClasses">
+        <!-- Dynamically rendered -->
+      </div>
 
-    <h2>Upload Images (Manual Upload)</h2>
-    <input type="file" id="fileInput" multiple accept="image/*">
+      <div class="add-category-row">
+        <select id="newCatSelect" class="cat-select">
+          <option value="3">🍇 Grapes</option>
+          <option value="4">🍓 Strawberry</option>
+          <option value="5">🥭 Mango</option>
+        </select>
+        <button class="btn-add" onclick="addCategory()">+ Add Category</button>
+      </div>
 
-    <button onclick="trainModel()">Initial Training</button>
-    <button onclick="addMore()">Add New Category Images</button>
-    <button onclick="retrainModel()">Retrain with New Category</button>
+      <div class="btn-row">
+        <button class="btn-predict" id="predBtn" onclick="togglePred()" disabled>🔍 Start Predicting</button>
+        <button class="btn-reset"  onclick="resetAll()">↺ Reset</button>
+      </div>
+    </div>
 
-    <h3>Logs</h3>
-    <div id="log"></div>
+    <div class="panel side-panel">
+      <h2>Performance Analysis</h2>
 
-    <h3>Uploaded Images</h3>
-    <div id="preview"></div>
+      <div class="current-pred">
+        <div class="cp-label">CURRENT PREDICTION</div>
+        <div id="cpLabel" class="cp-val">--</div>
+        <div id="cpConf"  class="cp-conf">--</div>
+      </div>
 
-    <h3>Confusion Matrix</h3>
-    <div id="cm"></div>
+      <div class="timeline" id="timeline">
+        <div class="tl-label">CATEGORY TIMELINE</div>
+        <div class="tl-empty">No categories added yet</div>
+      </div>
 
-</div>
+      <div class="perf-chart">
+        <div class="pc-label">CONFIDENCE PER CLASS</div>
+        <div id="confBars" class="conf-bars"></div>
+      </div>
 
-<script src="script.js"></script>
+      <div class="analysis-box" id="analysisBox">
+        <div class="ab-label">ANALYSIS</div>
+        <div id="analysisText" class="ab-text">Add categories and start predicting to see analysis.</div>
+      </div>
+
+      <div class="log-box" id="log"><div class="ll">Ready.</div></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>

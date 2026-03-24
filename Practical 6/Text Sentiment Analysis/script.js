@@ -1,70 +1,106 @@
-// Small training dataset
-const trainingData = [
-    { text: "I love this product", label: 1 },
-    { text: "This is amazing", label: 1 },
-    { text: "I feel great today", label: 1 },
-    { text: "This is the worst", label: 0 },
-    { text: "I hate this", label: 0 },
-    { text: "This is terrible", label: 0 }
-];
+let video = document.getElementById("video");
+let canvas = document.getElementById("canvas");
+let ctx = canvas.getContext("2d");
 
-// Simple tokenizer
-function tokenize(text) {
-    return text.toLowerCase().replace(/[^a-z\s]/g, "").split(" ");
+let net;
+let running = false;
+
+// ✅ Load model FIRST
+async function loadModel() {
+  net = await posenet.load();
+  console.log("✅ Model Loaded");
 }
 
-const vocab = {};
-let index = 1;
+// ✅ Start camera AFTER model loads
+async function startCamera() {
+  if (!net) {
+    alert("Model not loaded yet!");
+    return;
+  }
 
-trainingData.forEach(item => {
-    tokenize(item.text).forEach(word => {
-        if (!vocab[word]) vocab[word] = index++;
-    });
-});
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video: true
+  });
 
-// Vectorize
-function vectorize(text) {
-    const words = tokenize(text);
-    const vec = new Array(Object.keys(vocab).length).fill(0);
-    words.forEach(w => {
-        if (vocab[w]) vec[vocab[w] - 1] = 1;
-    });
-    return vec;
+  video.srcObject = stream;
+
+  // ✅ WAIT until video is ready
+  video.onloadedmetadata = () => {
+    video.play();
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    running = true;
+    detectPose();
+  };
 }
 
-// Dense model (simple)
-const denseModel = tf.sequential();
-denseModel.add(tf.layers.dense({ units: 8, activation: "relu", inputShape: [Object.keys(vocab).length] }));
-denseModel.add(tf.layers.dense({ units: 1, activation: "sigmoid" }));
+function stopCamera() {
+  running = false;
+  let stream = video.srcObject;
+  if (stream) {
+    stream.getTracks().forEach(track => track.stop());
+  }
+}
 
-denseModel.compile({ optimizer: "adam", loss: "binaryCrossentropy", metrics: ["accuracy"] });
+// ✅ SAFE pose detection loop
+async function detectPose() {
+  if (!running || !net) return;
 
-// Prepare training data
-const xs = tf.tensor2d(trainingData.map(d => vectorize(d.text)));
-const ys = tf.tensor2d(trainingData.map(d => [d.label]));
+  const mode = document.getElementById("mode").value;
+  const confidence = parseFloat(document.getElementById("confidence").value);
 
-// Train
-(async () => {
-    await denseModel.fit(xs, ys, { epochs: 20 });
-    console.log("Dense Model Trained.");
-})();
+  let poses = [];
 
-// Predict
-window.analyze = async function () {
-    const text = document.getElementById("inputText").value.trim();
-    if (!text) {
-        alert("Enter text first!");
-        return;
+  try {
+    if (mode === "single") {
+      const pose = await net.estimateSinglePose(video);
+      poses = [pose];
+    } else {
+      poses = await net.estimateMultiplePoses(video);
     }
+  } catch (err) {
+    console.error("Pose error:", err);
+    return;
+  }
 
-    const input = tf.tensor2d([vectorize(text)]);
-    const prediction = denseModel.predict(input);
-    const score = (await prediction.data())[0];
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    let sentiment = score > 0.5 ? "Positive 😊" : "Negative 😡";
+  poses.forEach(pose => {
+    drawKeypoints(pose.keypoints, confidence);
+    drawSkeleton(pose.keypoints, confidence);
+  });
 
-    document.getElementById("result").innerHTML = `
-        Sentiment: <b>${sentiment}</b><br>
-        Confidence: ${(score * 100).toFixed(2)}%
-    `;
-};
+  document.getElementById("poseCount").innerText =
+    "Poses Detected: " + poses.length;
+
+  requestAnimationFrame(detectPose);
+}
+
+function drawKeypoints(keypoints, threshold) {
+  keypoints.forEach(point => {
+    if (point.score > threshold) {
+      ctx.beginPath();
+      ctx.arc(point.position.x, point.position.y, 5, 0, 2 * Math.PI);
+      ctx.fillStyle = "red";
+      ctx.fill();
+    }
+  });
+}
+
+function drawSkeleton(keypoints, threshold) {
+  const adjacent = posenet.getAdjacentKeyPoints(keypoints, threshold);
+
+  adjacent.forEach(pair => {
+    ctx.beginPath();
+    ctx.moveTo(pair[0].position.x, pair[0].position.y);
+    ctx.lineTo(pair[1].position.x, pair[1].position.y);
+    ctx.strokeStyle = "lime";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  });
+}
+
+// ✅ Load model automatically on page load
+loadModel();

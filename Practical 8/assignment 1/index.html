@@ -1,124 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Transfer Learning – Assignment 1</title>
-
-<!-- TensorFlow.js -->
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
-
-<!-- Google Fonts -->
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-
-<style>
-    body {
-        margin: 0;
-        background: #0f0f17;
-        font-family: "Poppins", sans-serif;
-        color: white;
-    }
-
-    /* Top Header */
-    .header {
-        width: 100%;
-        padding: 22px 40px;
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(18px);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        font-size: 24px;
-        font-weight: 600;
-        letter-spacing: 1px;
-    }
-
-    /* Main card */
-    .card {
-        width: 900px;
-        margin: 40px auto;
-        padding: 35px;
-        background: rgba(255, 255, 255, 0.08);
-        backdrop-filter: blur(20px);
-        border-radius: 18px;
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-    }
-
-    h2 {
-        margin-top: 0;
-        font-weight: 600;
-        font-size: 26px;
-        color: #a3c9ff;
-    }
-
-    /* Buttons */
-    button {
-        padding: 10px 25px;
-        font-size: 16px;
-        border-radius: 8px;
-        border: none;
-        cursor: pointer;
-        margin: 10px 10px 20px 0;
-        background: linear-gradient(135deg, #517bff, #6eaaff);
-        color: white;
-        font-weight: 500;
-        transition: 0.3s;
-    }
-
-    button:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 4px 20px rgba(90, 150, 255, 0.4);
-    }
-
-    /* Log panel */
-    #log {
-        background: rgba(0, 0, 0, 0.35);
-        border: 1px solid rgba(255,255,255,0.15);
-        padding: 12px;
-        height: 180px;
-        overflow-y: auto;
-        border-radius: 10px;
-        margin-top: 20px;
-        font-size: 14px;
-    }
-
-    /* Image preview */
-    #preview img {
-        width: 90px;
-        height: 90px;
-        object-fit: cover;
-        border-radius: 12px;
-        margin: 8px;
-        border: 1px solid rgba(255,255,255,0.2);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.35);
-    }
-</style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Assignment 1 – Retrain MobileNet</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/knn-classifier"></script>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css"/>
 </head>
-
 <body>
+  <header>
+    <a href="../../index.html" class="back">← Practical 8</a>
+    <div class="tag">Assignment 01</div>
+    <h1>Retrain MobileNet – 3 Categories</h1>
+    <p>Train a custom classifier on top of MobileNet using KNN · CO4 – Create</p>
+  </header>
 
-<div class="header">
-    Transfer Learning – Assignment 1 (MobileNet)
-</div>
+  <div class="layout">
+    <div class="panel">
+      <div class="win-bar">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span>retrain_mobilenet.js</span>
+        <span id="liveDot" class="ldot off">●</span>
+      </div>
+      <div class="feed-wrap">
+        <video id="video" autoplay playsinline muted></video>
+        <canvas id="canvas" style="display:none"></canvas>
+      </div>
+      <div class="class-btns">
+        <button class="class-btn c0" onmousedown="capture(0)" onmouseup="stopCap()" ontouchstart="capture(0)" ontouchend="stopCap()">
+          Hold: 🍎 Apple<br/><span id="c0">0</span>
+        </button>
+        <button class="class-btn c1" onmousedown="capture(1)" onmouseup="stopCap()" ontouchstart="capture(1)" ontouchend="stopCap()">
+          Hold: 🍌 Banana<br/><span id="c1">0</span>
+        </button>
+        <button class="class-btn c2" onmousedown="capture(2)" onmouseup="stopCap()" ontouchstart="capture(2)" ontouchend="stopCap()">
+          Hold: 🍊 Orange<br/><span id="c2">0</span>
+        </button>
+      </div>
+    </div>
 
-<div class="card">
-    <h2>Upload Training Images (Manual Upload)</h2>
+    <div class="panel side-panel">
+      <h2>Transfer Learning</h2>
 
-    <p><strong>Categories:</strong> Shinchan, Harry, Mitsy</p>
+      <div class="info-box">
+        <div class="info-title">How it works</div>
+        <div class="info-text">
+          MobileNet extracts deep features from each frame.<br/>
+          KNN classifier learns from those features.<br/>
+          No full retraining needed — just the final layer.
+        </div>
+      </div>
 
-    <!-- Manual file upload -->
-    <input type="file" id="fileInput" multiple accept="image/*"><br><br>
+      <div class="action-row">
+        <button class="btn-train" id="trainBtn" onclick="train()" disabled>⚡ Train</button>
+        <button class="btn-pred"  id="predBtn"  onclick="togglePred()" disabled>🔍 Predict</button>
+        <button class="btn-reset" onclick="reset()">↺</button>
+      </div>
 
-    <button onclick="trainModel()">Train Model</button>
-    <button onclick="testRandom()">Test Random</button>
+      <div class="train-progress">
+        <div class="tp-label">TRAINING PROGRESS</div>
+        <div class="tp-bar-wrap"><div id="tpBar" class="tp-bar" style="width:0%"></div></div>
+        <div id="tpText" class="tp-text">Waiting...</div>
+      </div>
 
-    <h3>Logs:</h3>
-    <div id="log"></div>
+      <div class="pred-result" id="predResult">
+        <div class="pr-title">Prediction</div>
+        <div id="prLabel" class="pr-label">--</div>
+        <div id="prConf"  class="pr-conf">--</div>
+      </div>
 
-    <h3>Preview:</h3>
-    <div id="preview"></div>
-</div>
+      <div class="samples-summary">
+        <div class="ss-label">SAMPLES COLLECTED</div>
+        <div class="ss-grid">
+          <div class="ss-item"><span>🍎 Apple</span><span id="ss0">0</span></div>
+          <div class="ss-item"><span>🍌 Banana</span><span id="ss1">0</span></div>
+          <div class="ss-item"><span>🍊 Orange</span><span id="ss2">0</span></div>
+        </div>
+      </div>
 
-<script src="script.js"></script>
+      <div class="log-box" id="log"><div class="ll">Ready.</div></div>
+    </div>
+  </div>
 
+  <script src="script.js"></script>
 </body>
 </html>

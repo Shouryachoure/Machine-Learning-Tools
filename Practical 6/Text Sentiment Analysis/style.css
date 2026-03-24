@@ -1,0 +1,141 @@
+/* RESET */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* BODY */
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: radial-gradient(circle at top, #0f0f0f, #050505);
+  color: #fff;
+}
+
+/* CONTAINER */
+.container {
+  padding: 20px;
+}
+
+/* HEADER */
+header {
+  margin-bottom: 20px;
+}
+
+header h1 {
+  font-size: 32px;
+  color: #ff3c3c;
+  text-shadow: 0 0 15px rgba(255, 60, 60, 0.7);
+}
+
+header p {
+  color: #aaa;
+}
+
+/* DASHBOARD LAYOUT */
+.dashboard {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+}
+
+/* CARD */
+.card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 0 25px rgba(255, 0, 0, 0.15);
+  padding: 15px;
+  transition: 0.3s;
+}
+
+.card:hover {
+  transform: scale(1.01);
+}
+
+/* CARD HEADER */
+.card-header {
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #ff3c3c;
+}
+
+/* VIDEO */
+.video-wrapper {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+video, canvas {
+  width: 100%;
+  border-radius: 10px;
+}
+
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* BUTTONS */
+.controls {
+  margin-top: 10px;
+}
+
+button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  margin-right: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+button.start {
+  background: linear-gradient(45deg, #00ff99, #00cc66);
+  color: black;
+}
+
+button.stop {
+  background: linear-gradient(45deg, #ff3c3c, #cc0000);
+  color: white;
+}
+
+button:hover {
+  transform: scale(1.05);
+}
+
+/* PANEL */
+.side-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.side-panel label {
+  font-size: 14px;
+  color: #ccc;
+}
+
+/* INPUT */
+input[type="range"] {
+  width: 100%;
+  accent-color: #ff3c3c;
+}
+
+select {
+  padding: 8px;
+  border-radius: 5px;
+  border: none;
+  background: #111;
+  color: white;
+}
+
+/* DIVIDER */
+.divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 10px 0;
+}

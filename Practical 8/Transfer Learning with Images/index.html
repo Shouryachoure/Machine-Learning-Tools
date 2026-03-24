@@ -1,101 +1,149 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Transfer Learning (MobileNet)</title>
-
-    <!-- TensorFlow.js -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.21.0"></script>
-
-    <!-- MobileNet V2 (Correct 1024-D version) -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.0"></script>
-
-    <style>
-        body {
-            margin: 0;
-            font-family: "Poppins", sans-serif;
-            background: linear-gradient(135deg, #001c4e, #09255f, #003d80);
-            height: 100vh;
-            color: white;
-        }
-
-        .card {
-            width: 700px;
-            margin: 40px auto;
-            background: rgba(255, 255, 255, 0.12);
-            padding: 30px;
-            border-radius: 18px;
-            backdrop-filter: blur(12px);
-            box-shadow: 0 0 25px rgba(0,0,0,0.4);
-        }
-
-        h1 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        #log {
-            width: 95%;
-            height: 160px;
-            background: rgba(0,0,0,0.3);
-            padding: 10px;
-            margin-top: 20px;
-            border-radius: 12px;
-            font-size: 13px;
-            overflow-y: scroll;
-        }
-
-        #preview img {
-            width: 80px;
-            height: 80px;
-            object-fit: cover;
-            border-radius: 10px;
-            margin: 8px;
-        }
-
-        button {
-            padding: 8px 20px;
-            font-size: 14px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-right: 10px;
-            background: #4aa3ff;
-            color: white;
-            transition: 0.3s;
-        }
-
-        button:hover {
-            background: #1b8bff;
-            transform: scale(1.05);
-        }
-
-        input[type=file] {
-            margin: 10px 0;
-        }
-    </style>
-
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Practical 8 – Transfer Learning</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css"/>
 </head>
-
 <body>
 
-    <div class="card">
-        <h1>Transfer Learning (MobileNet)</h1>
+  <div class="hero">
+    <div class="badge">CO4 – Create</div>
+    <h1>Transfer Learning<br/><span>with Images</span></h1>
+    <p class="subtitle">Retrain MobileNet · Custom Dataset · Real-time Classification</p>
+  </div>
 
-        <h3>Upload Training Images (3 Categories)</h3>
-        <p><b>Folders must be categories like:</b> apple, banana, orange</p>
+  <div class="main-container">
 
-        <input type="file" id="files" webkitdirectory multiple />
+    <!-- Training Panel -->
+    <div class="train-card">
+      <div class="card-header">
+        <span class="dot red"></span>
+        <span class="dot yellow"></span>
+        <span class="dot green"></span>
+        <span class="card-title">transfer_learning.js</span>
+        <span id="trainStatus" class="status-badge off">● IDLE</span>
+      </div>
 
-        <br><br>
-        <button onclick="trainModel()">Train Model</button>
-        <button onclick="testRandom()">Test Random Image</button>
+      <div class="webcam-wrap">
+        <video id="webcam" autoplay playsinline muted></video>
+        <canvas id="overlay"></canvas>
+        <div id="predOverlay" class="pred-overlay"></div>
+      </div>
 
-        <div id="log">Logs:<br></div>
+      <div class="class-section">
+        <div class="section-label">TRAINING CLASSES</div>
+        <div class="class-grid" id="classGrid">
+          <div class="class-card" data-class="0">
+            <div class="class-name">🍎 Apple</div>
+            <div class="class-count" id="count-0">0 samples</div>
+            <button class="add-btn" onmousedown="startCapture(0)" onmouseup="stopCapture()" ontouchstart="startCapture(0)" ontouchend="stopCapture()">
+              Hold to Capture
+            </button>
+          </div>
+          <div class="class-card" data-class="1">
+            <div class="class-name">🍌 Banana</div>
+            <div class="class-count" id="count-1">0 samples</div>
+            <button class="add-btn" onmousedown="startCapture(1)" onmouseup="stopCapture()" ontouchstart="startCapture(1)" ontouchend="stopCapture()">
+              Hold to Capture
+            </button>
+          </div>
+          <div class="class-card" data-class="2">
+            <div class="class-name">🍊 Orange</div>
+            <div class="class-count" id="count-2">0 samples</div>
+            <button class="add-btn" onmousedown="startCapture(2)" onmouseup="stopCapture()" ontouchstart="startCapture(2)" ontouchend="stopCapture()">
+              Hold to Capture
+            </button>
+          </div>
+        </div>
+      </div>
 
-        <div id="preview"></div>
+      <div class="train-controls">
+        <button class="btn primary" id="trainBtn" onclick="trainModel()" disabled>
+          ⚡ Train Model
+        </button>
+        <button class="btn secondary" id="predictBtn" onclick="togglePredict()" disabled>
+          🔍 Start Predicting
+        </button>
+        <button class="btn outline" onclick="resetAll()">↺ Reset</button>
+      </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- Results Panel -->
+    <div class="results-card">
+      <h2 class="results-title">Training Results</h2>
+
+      <div class="result-block">
+        <div class="result-label">TRAINING PROGRESS</div>
+        <div class="progress-wrap">
+          <div id="progressBar" class="progress-bar" style="width:0%"></div>
+        </div>
+        <div id="progressText" class="progress-text">Not started</div>
+      </div>
+
+      <div class="result-block">
+        <div class="result-label">METRICS</div>
+        <div class="metrics-grid">
+          <div class="metric-box"><div id="m_epoch"  class="m-val">--</div><div class="m-key">Epoch</div></div>
+          <div class="metric-box"><div id="m_loss"   class="m-val">--</div><div class="m-key">Loss</div></div>
+          <div class="metric-box"><div id="m_acc"    class="m-val">--</div><div class="m-key">Accuracy</div></div>
+          <div class="metric-box"><div id="m_samples" class="m-val">0</div><div class="m-key">Samples</div></div>
+        </div>
+      </div>
+
+      <div class="result-block">
+        <div class="result-label">CURRENT PREDICTION</div>
+        <div id="predLabel" class="pred-label">Train model first</div>
+        <div id="predConf"  class="pred-conf">--</div>
+        <div id="predBars"  class="pred-bars"></div>
+      </div>
+
+      <div class="log-box" id="log">
+        <div class="log-entry">⏳ Ready. Capture samples then train.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Assignments -->
+  <div class="assignments-section">
+    <h2>Assignments</h2>
+    <div class="assign-grid">
+      <a href="assigment/Assignment_1_Retrain_MobileNet/index.html" class="assign-card">
+        <div class="assign-num">01</div>
+        <div class="assign-info">
+          <h3>Retrain MobileNet</h3>
+          <p>Retrain MobileNet for a custom dataset with 3 categories</p>
+        </div>
+        <span class="arrow">→</span>
+      </a>
+      <a href="assigment/Assignment_2_Accuracy_Confusion_Matrix/index.html" class="assign-card">
+        <div class="assign-num">02</div>
+        <div class="assign-info">
+          <h3>Accuracy & Confusion Matrix</h3>
+          <p>Evaluate accuracy on validation data and report confusion matrix</p>
+        </div>
+        <span class="arrow">→</span>
+      </a>
+      <a href="assigment/Assignment_3_Incremental_Categories/index.html" class="assign-card">
+        <div class="assign-num">03</div>
+        <div class="assign-info">
+          <h3>Incremental Categories</h3>
+          <p>Add new categories incrementally and analyze performance changes</p>
+        </div>
+        <span class="arrow">→</span>
+      </a>
+    </div>
+  </div>
+
+  <footer>
+    <p>Practical 8 · Transfer Learning with Images · CO4 – Create</p>
+  </footer>
+
+  <script src="script.js"></script>
 </body>
 </html>
