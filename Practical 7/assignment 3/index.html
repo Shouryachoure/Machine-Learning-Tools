@@ -1,41 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>PoseNet Single vs Multi Pose</title>
-
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.21.0"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@2.2.1"></script>
-
-<style>
-body {
-  background: linear-gradient(135deg,#0d1b3d,#000814);
-  color: white;
-  font-family: Poppins, sans-serif;
-  text-align: center;
-  padding-top: 40px;
-}
-video, canvas {
-  border-radius: 15px;
-  margin-top: 15px;
-}
-</style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Assignment 3 – Single vs Multi Pose</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet"></script>
+  <link rel="stylesheet" href="style.css"/>
 </head>
-
 <body>
-<h1>PoseNet Comparison</h1>
-<p id="status">Loading models…</p>
+  <header>
+    <a href="../../index.html" class="back">← Practical 7</a>
+    <div class="tag">Assignment 03</div>
+    <h1>Single vs Multi-Pose Detection</h1>
+    <p>Analyze accuracy & performance differences between detection modes · CO3 – Apply</p>
+  </header>
 
-<video id="webcam" width="500" autoplay playsinline></video>
-<canvas id="canvas" width="500" height="400"></canvas>
+  <div class="mode-select">
+    <button class="mode-btn active" id="btnSingle" onclick="setMode('single')">
+      👤 Single Pose
+    </button>
+    <button class="mode-btn" id="btnMulti" onclick="setMode('multi')">
+      👥 Multi Pose
+    </button>
+  </div>
 
-<br><br>
+  <div class="layout">
+    <div class="panel">
+      <div class="win-bar">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span id="modeTitle">single_pose.js</span>
+        <span id="liveDot" class="ldot off">●</span>
+      </div>
+      <div class="feed-wrap">
+        <video id="video" autoplay playsinline muted></video>
+        <canvas id="canvas"></canvas>
+      </div>
+      <div class="btn-row">
+        <button class="btn" onclick="start()">▶ Start</button>
+        <button class="btn outline" id="stopBtn" onclick="stop()" disabled>■ Stop</button>
+      </div>
+    </div>
 
-<button onclick="mode='single'">Single Pose</button>
-<button onclick="mode='multi'">Multi Pose</button>
+    <div class="panel side-panel">
+      <h2>Comparison Metrics</h2>
 
-<p>Mode: <b id="modeText">Single Pose</b></p>
+      <div class="mode-info-box" id="modeInfo">
+        <div class="mi-title" id="miTitle">Single Pose Mode</div>
+        <div class="mi-desc" id="miDesc">Detects one person. Faster inference, higher accuracy per person.</div>
+      </div>
 
-<script src="script.js"></script>
+      <div class="metrics-grid">
+        <div class="m-box"><div id="posesDetected" class="m-val">--</div><div class="m-key">Poses</div></div>
+        <div class="m-box"><div id="avgScore"      class="m-val">--</div><div class="m-key">Avg Score</div></div>
+        <div class="m-box"><div id="inferTime"     class="m-val">--</div><div class="m-key">Infer ms</div></div>
+        <div class="m-box"><div id="fpsVal"        class="m-val">--</div><div class="m-key">FPS</div></div>
+      </div>
+
+      <div class="comparison-section">
+        <div class="section-label">SESSION AVERAGES</div>
+        <div class="avg-row">
+          <div class="avg-item">
+            <div class="avg-label">Single Pose Avg ms</div>
+            <div id="avgSingle" class="avg-val">--</div>
+          </div>
+          <div class="avg-item">
+            <div class="avg-label">Multi Pose Avg ms</div>
+            <div id="avgMulti"  class="avg-val">--</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="verdict" id="verdict" style="display:none">
+        <div class="verdict-title">⚖ Analysis</div>
+        <div id="verdictText" class="verdict-text"></div>
+      </div>
+
+      <div class="log-box" id="log"><div class="ll">Ready.</div></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>

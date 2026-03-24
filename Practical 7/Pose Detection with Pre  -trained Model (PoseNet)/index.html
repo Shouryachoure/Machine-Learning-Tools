@@ -3,66 +3,112 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Assignment 1 – Keypoints & Skeleton</title>
+  <title>Practical 7 – Pose Detection PoseNet</title>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet"></script>
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-  <header>
-    <a href="../../index.html" class="back">← Practical 7</a>
-    <div class="tag">Assignment 01</div>
-    <h1>Detect Keypoints & Visualize Skeleton</h1>
-    <p>Detect all 17 human pose keypoints and draw full skeleton · CO3 – Apply</p>
-  </header>
 
-  <div class="layout">
-    <div class="panel">
-      <div class="win-bar">
-        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
-        <span>skeleton_visualizer.js</span>
-        <span id="liveDot" class="ldot off">●</span>
+  <div class="hero">
+    <div class="badge">CO3 – Apply</div>
+    <h1>Pose Detection<br/><span>with PoseNet</span></h1>
+    <p class="subtitle">Detect Keypoints · Visualize Skeleton · Real-time Inference</p>
+  </div>
+
+  <div class="main-container">
+
+    <!-- Camera Panel -->
+    <div class="camera-card">
+      <div class="card-header">
+        <span class="dot red"></span>
+        <span class="dot yellow"></span>
+        <span class="dot green"></span>
+        <span class="card-title">posenet_live.js</span>
+        <span id="liveBadge" class="live-badge off">● IDLE</span>
       </div>
-      <div class="feed-wrap">
-        <video id="video" autoplay playsinline muted></video>
-        <canvas id="canvas"></canvas>
+      <div class="video-wrapper">
+        <video id="webcam" autoplay playsinline muted></video>
+        <canvas id="overlay"></canvas>
       </div>
-      <div class="btn-row">
-        <button class="btn" onclick="start()">▶ Start</button>
-        <button class="btn outline" id="stopBtn" onclick="stop()" disabled>■ Stop</button>
+      <div class="controls">
+        <button class="btn primary" id="startBtn" onclick="startDetection()">▶ Start</button>
+        <button class="btn danger"  id="stopBtn"  onclick="stopDetection()" disabled>■ Stop</button>
       </div>
     </div>
 
-    <div class="panel info-panel">
-      <h2>Keypoint Data</h2>
+    <!-- Results Panel -->
+    <div class="results-card">
+      <h2 class="results-title">Pose Data</h2>
 
-      <div class="score-row">
-        <div class="score-box">
-          <div id="poseScore" class="score-val">--</div>
-          <div class="score-key">Pose Score</div>
-        </div>
-        <div class="score-box">
-          <div id="kpCount" class="score-val">--</div>
-          <div class="score-key">Active KPs</div>
-        </div>
-        <div class="score-box">
-          <div id="fpsVal" class="score-val">--</div>
-          <div class="score-key">FPS</div>
+      <div class="result-block">
+        <div class="result-label">DETECTED KEYPOINTS</div>
+        <div id="keypointCount" class="big-val">--</div>
+        <div class="sub-val">of 17 keypoints</div>
+      </div>
+
+      <div class="result-block">
+        <div class="result-label">CONFIDENCE</div>
+        <div id="poseScore" class="big-val accent2">--</div>
+        <div class="sub-val">overall pose score</div>
+      </div>
+
+      <div class="result-block">
+        <div class="result-label">PERFORMANCE</div>
+        <div class="perf-grid">
+          <div class="perf-box"><div id="fps" class="perf-num">--</div><div class="perf-key">FPS</div></div>
+          <div class="perf-box"><div id="inferMs" class="perf-num">--</div><div class="perf-key">Infer ms</div></div>
         </div>
       </div>
 
-      <div class="kp-section">
-        <div class="section-label">ALL 17 KEYPOINTS</div>
-        <div id="kpGrid" class="kp-grid">
-          <div class="kp-waiting">Start detection</div>
+      <div class="result-block">
+        <div class="result-label">TOP KEYPOINTS</div>
+        <div id="keypointList" class="kp-list">
+          <div class="kp-empty">Start detection to see keypoints</div>
         </div>
       </div>
 
       <div class="log-box" id="log">
-        <div class="ll">Ready.</div>
+        <div class="log-entry">⏳ Ready. Click Start.</div>
       </div>
     </div>
+
   </div>
+
+  <!-- Assignments -->
+  <div class="assignments-section">
+    <h2>Assignments</h2>
+    <div class="assign-grid">
+      <a href="assigment/Assignment_1_Keypoints_Skeleton/index.html" class="assign-card">
+        <div class="assign-num">01</div>
+        <div class="assign-info">
+          <h3>Keypoints & Skeleton</h3>
+          <p>Detect human pose keypoints and visualize the full skeleton</p>
+        </div>
+        <span class="arrow">→</span>
+      </a>
+      <a href="assigment/Assignment_2_Exercise_Counter/index.html" class="assign-card">
+        <div class="assign-num">02</div>
+        <div class="assign-info">
+          <h3>Exercise Counter</h3>
+          <p>Count squat repetitions using keypoint angle detection</p>
+        </div>
+        <span class="arrow">→</span>
+      </a>
+      <a href="assigment/Assignment_3_Single_vs_Multi_Pose/index.html" class="assign-card">
+        <div class="assign-num">03</div>
+        <div class="assign-info">
+          <h3>Single vs Multi Pose</h3>
+          <p>Analyze accuracy differences between detection modes</p>
+        </div>
+        <span class="arrow">→</span>
+      </a>
+    </div>
+  </div>
+
+  <footer>
+    <p>Practical 7 · Pose Detection with PoseNet · CO3 – Apply</p>
+  </footer>
 
   <script src="script.js"></script>
 </body>
